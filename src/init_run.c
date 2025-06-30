@@ -3,10 +3,10 @@
 void init_run(struct run_param *this_run, int argc, char **argv)
 {
   // default setting
-  float dt_output = 0.1;
+  double dt_output = 0.1;
   this_run->nmesh_x = 128;
   this_run->rho = 1.0;
-  this_run->hbar = 1.0e-2;
+  this_run->hbar = 1.0e-1;
 
   bool mflag, tflag, Tflag;
 
@@ -64,9 +64,8 @@ void init_run(struct run_param *this_run, int argc, char **argv)
 
   this_run->output_indx = 0;
   this_run->tnow = 0.0f;
-  this_run->dtime = this_run->rho*SQR(this_run->delta_x);
   this_run->noutput = (this_run->tend-this_run->tnow)/dt_output+1;
-  this_run->output_timing = (float *)malloc(sizeof(float)*this_run->noutput);
+  this_run->output_timing = (double *)malloc(sizeof(double)*this_run->noutput);
 
   fprintf(stderr, "# nmesh_x : %d\n", this_run->nmesh_x);
   fprintf(stderr, "# dt/dx^2 : %12.4e\n", this_run->rho);

@@ -19,20 +19,20 @@
 struct run_param {
   int32_t nstep;
   int32_t nmesh_x;
-  float tnow,  dtime, tend;
+  double tnow,  dtime, tend;
 
-  float rho;  // dt/(dx)^2
-  float hbar;
+  double rho;  // dt/(dx)^2
+  double hbar;
 
-  float xmax, xmin;
-  float delta_x;
+  double xmax, xmin;
+  double delta_x;
 
-  float mass;
+  double mass;
 
   char model_name[MODEL_NAME_LENGTH];
   
   int32_t output_indx, noutput;
-  float *output_timing;
+  double *output_timing;
 };
 
 #define SQR(x)  ((x)*(x))
@@ -45,6 +45,10 @@ struct run_param {
 #define QUAD_ROOT_2PI (1.583233487)
 
 void init_run(struct run_param *, int, char**);
-void setup_IC_free(float complex *, float, float, float, struct run_param *);
-void evolve_3pnt(float complex *, struct run_param*, float);
-void output_data(float complex *, float *, float *velc, struct run_param *);
+void setup_IC_free(double complex *, double, double, double, struct run_param *);
+void evolve_3pnt(double complex *, struct run_param*, double);
+void evolve_5pnt(double complex *, struct run_param*, double);
+void output_data(double complex *, double *, double *velc, struct run_param *);
+double complex analytic_psi(double, double, double, double, double, double);
+void calc_dens(double complex *, double *, struct run_param *);
+void calc_velc(double complex *, double *, struct run_param *);

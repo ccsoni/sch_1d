@@ -1,6 +1,6 @@
 #include "sch_1d.h"
 
-void output_data(float complex *psi, float *dens, float *velc,
+void output_data(double complex *psi, double *dens, double *velc,
 		 struct run_param *this_run)
 {
   static char output_filename[MODEL_NAME_LENGTH+10];
@@ -11,9 +11,14 @@ void output_data(float complex *psi, float *dens, float *velc,
     FILE *fp = fopen(output_filename, "w");
 
     for(int32_t ix=0;ix<this_run->nmesh_x;ix++) {
-      float x = this_run->xmin + ((float)ix+0.5)*this_run->delta_x;
-      fprintf(fp, "%14.6e %14.6e %14.6e %14.6e %14.6e\n",
-	      x, dens[ix], velc[ix], crealf(psi[ix]), cimagf(psi[ix]));
+      double x = this_run->xmin + ((double)ix+0.5)*this_run->delta_x;
+
+      double complex analytic = analytic_psi(x, this_run->tnow,
+					    0.5, 2.0*M_PI, 0.1, this_run->hbar);
+      
+      fprintf(fp, "%14.6e %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e\n",
+	      x, dens[ix], velc[ix], creal(psi[ix]), cimag(psi[ix]),
+	      creal(analytic), cimag(analytic), SQR(cabs(analytic)));
     }
 
     fclose(fp);
