@@ -1,12 +1,12 @@
 #include "sch_1d.h"
 
-void init_run(struct run_param *this_run, int argc, char **argv)
+void init_run(struct run_param *tr, int argc, char **argv)
 {
   // default setting
   double dt_output = 0.1;
-  this_run->nmesh_x = 128;
-  this_run->rho = 1.0;
-  this_run->hbar = 1.0e-1;
+  tr->nmesh_x = 128;
+  tr->rho = 1.0;
+  tr->hbar = 1.0e-1;
 
   bool mflag, tflag, Tflag;
 
@@ -21,17 +21,17 @@ void init_run(struct run_param *this_run, int argc, char **argv)
       fprintf(stderr, "Additional options:\n -d h_bar\n -r dt/(dx^2)\n");
       exit(EXIT_FAILURE);
     case 'N':
-      this_run->nmesh_x = atof(optarg);
-      fprintf(stderr, "# nmehs_x = %d\n", this_run->nmesh_x);
+      tr->nmesh_x = atof(optarg);
+      fprintf(stderr, "# nmehs_x = %d\n", tr->nmesh_x);
       break;
     case 'r':
-      this_run->rho = atof(optarg);
-      fprintf(stderr, "# dt/(dx)^2 = %12.4e\n", this_run->rho);
+      tr->rho = atof(optarg);
+      fprintf(stderr, "# dt/(dx)^2 = %12.4e\n", tr->rho);
       break;
     case 'T':
-      this_run->tend = atof(optarg);
+      tr->tend = atof(optarg);
       Tflag = true;
-      fprintf(stderr, "# t_end = %12.4e\n", this_run->tend);
+      fprintf(stderr, "# t_end = %12.4e\n", tr->tend);
       break;
     case 't':
       dt_output = atof(optarg);
@@ -39,13 +39,13 @@ void init_run(struct run_param *this_run, int argc, char **argv)
       fprintf(stderr, "# dt_output = %12.4e\n", dt_output);
       break;
     case 'm':
-      sprintf(this_run->model_name, "%s", optarg);
+      sprintf(tr->model_name, "%s", optarg);
       mflag = true;
-      fprintf(stderr, "# model_name = %s\n", this_run->model_name);
+      fprintf(stderr, "# model_name = %s\n", tr->model_name);
       break;
     case 'd':
-      this_run->hbar = atof(optarg);
-      fprintf(stderr, "# hbar = %12.4e\n", this_run->hbar);
+      tr->hbar = atof(optarg);
+      fprintf(stderr, "# hbar = %12.4e\n", tr->hbar);
       break;
     default:
       fprintf(stderr,
@@ -62,19 +62,19 @@ void init_run(struct run_param *this_run, int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  this_run->output_indx = 0;
-  this_run->tnow = 0.0f;
-  this_run->noutput = (this_run->tend-this_run->tnow)/dt_output+1;
-  this_run->output_timing = (double *)malloc(sizeof(double)*this_run->noutput);
+  tr->output_indx = 0;
+  tr->tnow = 0.0f;
+  tr->noutput = (tr->tend-tr->tnow)/dt_output+1;
+  tr->output_timing = (double *)malloc(sizeof(double)*tr->noutput);
 
-  fprintf(stderr, "# nmesh_x : %d\n", this_run->nmesh_x);
-  fprintf(stderr, "# dt/dx^2 : %12.4e\n", this_run->rho);
-  fprintf(stderr, "# hbar    : %12.4e\n", this_run->hbar);
+  fprintf(stderr, "# nmesh_x : %d\n", tr->nmesh_x);
+  fprintf(stderr, "# dt/dx^2 : %12.4e\n", tr->rho);
+  fprintf(stderr, "# hbar    : %12.4e\n", tr->hbar);
 
-  for(int i=0;i<this_run->noutput-1;i++) {
-    this_run->output_timing[i] = this_run->tnow + (i+1)*dt_output;
-    fprintf(stderr, "%d %12.4e \n", i, this_run->output_timing[i]);
+  for(int i=0;i<tr->noutput-1;i++) {
+    tr->output_timing[i] = tr->tnow + (i+1)*dt_output;
+    fprintf(stderr, "%d %12.4e \n", i, tr->output_timing[i]);
   }
 
-  this_run->output_timing[this_run->noutput-1] = this_run->tend;
+  tr->output_timing[tr->noutput-1] = tr->tend;
 }

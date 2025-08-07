@@ -18,7 +18,7 @@
 
 struct run_param {
   int32_t nstep;
-  int32_t nmesh_x;
+  int32_t nmesh_x, nmesh_v;
   double tnow,  dtime, tend;
 
   double rho;  // dt/(dx)^2
@@ -26,6 +26,9 @@ struct run_param {
 
   double xmax, xmin;
   double delta_x;
+
+  double vmax, vmin;
+  double delta_v;
 
   double mass;
 
@@ -45,10 +48,13 @@ struct run_param {
 #define QUAD_ROOT_2PI (1.583233487)
 
 void init_run(struct run_param *, int, char**);
+double complex coherent_wavefunc(double, double, double, double, double);
 void setup_IC_free(double complex *, double, double, double, struct run_param *);
 void evolve_3pnt(double complex *, struct run_param*, double);
 void evolve_5pnt(double complex *, struct run_param*, double);
 void output_data(double complex *, double *, double *velc, struct run_param *);
+void output_df(double *, struct run_param *);
 double complex analytic_psi(double, double, double, double, double, double);
 void calc_dens(double complex *, double *, struct run_param *);
 void calc_velc(double complex *, double *, struct run_param *);
+void calc_df(double complex *, double *, struct run_param *);

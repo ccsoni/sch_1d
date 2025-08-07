@@ -4,7 +4,7 @@ int main(int argc, char **argv)
 {
   struct run_param this_run = {.nmesh_x = 0};
   double complex *psi;
-  double *dens, *velc, *DF;
+  double *dens, *velc, *df;
 
   init_run(&this_run, argc, argv);
 
@@ -18,8 +18,11 @@ int main(int argc, char **argv)
 
   setup_IC_free(psi, x_bar, v_bar, sigma_x, &this_run);
 
+  df = (double *) malloc(sizeof(double)*this_run.nmesh_x*this_run.nmesh_v);  
+
   calc_dens(psi, dens, &this_run);
   calc_velc(psi, velc, &this_run);
+  calc_df(psi, df, &this_run);
 
   printf("# dt = %12.4e\n", this_run.dtime);
 
@@ -32,12 +35,14 @@ int main(int argc, char **argv)
 #endif
     calc_dens(psi, dens, &this_run);
     calc_velc(psi, velc, &this_run);
+    calc_df(psi, df, &this_run);
 
     this_run.tnow += this_run.dtime;
 
     if(this_run.tnow > this_run.output_timing[this_run.output_indx]) {
       output_data(psi, dens, velc, &this_run);
-      this_run.output_indx++;      
+      output_df(df, &this_run);
+      this_run.output_indx++;
     }
     
   }

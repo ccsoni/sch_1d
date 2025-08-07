@@ -64,4 +64,15 @@ void setup_IC_free(double complex *psi,
   }
 #endif
 
+  // range of velocity in phase space based on the Nyquist wavelength
+  tr->vmin = -M_PI*tr->hbar/tr->delta_x;
+  tr->vmax =  M_PI*tr->hbar/tr->delta_x;
+
+  // mesh spacing in the velocity space is set to half of the one
+  // obtained with the unceartainty principle
+  tr->delta_v = 0.25*tr->hbar/tr->delta_x;
+
+  tr->nmesh_v = (tr->vmax-tr->vmin)/tr->delta_v;
+  
 }
+
