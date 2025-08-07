@@ -35,20 +35,14 @@ int main(int argc, char **argv)
 
     this_run.tnow += this_run.dtime;
 
-    printf("# mass = %14.6e\n", this_run.mass);
-
     if(this_run.tnow > this_run.output_timing[this_run.output_indx]) {
       output_data(psi, dens, velc, &this_run);
+      this_run.output_indx++;      
     }
     
   }
  
-#if 0
-  for(int32_t ix=0;ix<this_run.nmesh_x;ix++) {
-    double x = this_run.xmin + ((double)ix+0.5)*this_run.delta_x;
-    printf("%14.6e %14.6e %14.6e %14.6e\n",
-	   x, dens[ix], crealf(psi[ix]), cimagf(psi[ix]));
-  }
-#endif
-
+  free(psi);
+  free(dens);
+  free(velc);
 }
