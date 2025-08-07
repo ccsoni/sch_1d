@@ -49,8 +49,6 @@ def init():
 
 if __name__  == "__main__":
 
-    print(sys.argv)
-    
     if len(sys.argv) != 3:
        print("Usage: python "+sys.argv[0]+" \"model_??.dat\" column")
        print("file list is given using the wildcard and must be double quated")
