@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import glob
+import os
 import re
 import sys
 
@@ -78,5 +79,31 @@ if __name__  == "__main__":
     )
 
     plt.show()
+    plt.close(fig)
 
-#    ani.save('animation.gif', writer='pillow', fps=2)
+    for i, filename in enumerate(file_list):
+        data = np.loadtxt(filename)
+        x = data[:,0]
+        y = data[:,column]
+
+        fig = plt.figure(dpi=200)
+        plt.rcParams['xtick.direction'] = 'in'
+        plt.rcParams['ytick.direction'] = 'in'
+        
+        ax = fig.add_axes((0.1, 0.1, 0.8, 0.8))
+
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        ax.grid(axis='x',which='major', color='#e9e9e9')
+        ax.grid(axis='y',which='major', color='#e9e9e9')
+
+        ax.plot(x,y);
+
+        output_base, _= os.path.splitext(filename)
+        output_filename = output_base+".png"
+
+        plt.savefig(output_filename, bbox_inches="tight")
+        plt.close(fig)
+
+
+        

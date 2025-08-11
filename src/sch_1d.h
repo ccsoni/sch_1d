@@ -49,12 +49,16 @@ struct run_param {
 
 void init_run(struct run_param *, int, char**);
 double complex coherent_wavefunc(double, double, double, double, double);
-void setup_IC_free(double complex *, double, double, double, struct run_param *);
-void evolve_3pnt(double complex *, struct run_param*, double);
-void evolve_5pnt(double complex *, struct run_param*, double);
+void setup_IC_point(double complex *, double, double, double, struct run_param *);
+void setup_IC_expand(double complex *, double, struct run_param *);
+void evolve_3pnt_free(double complex *, struct run_param*, double);
+void evolve_5pnt_free(double complex *, struct run_param*, double);
+void evolve_3pnt(double complex *, double *, struct run_param*, double);
+void evolve_5pnt(double complex *, double *, struct run_param*, double);
 void output_data(double complex *, double *, double *velc, struct run_param *);
 void output_df(double *, struct run_param *);
 double complex analytic_psi(double, double, double, double, double, double);
 void calc_dens(double complex *, double *, struct run_param *);
 void calc_velc(double complex *, double *, struct run_param *);
+void calc_pot(double *, struct run_param *);
 void calc_df(double complex *, double *, struct run_param *);

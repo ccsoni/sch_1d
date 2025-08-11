@@ -33,8 +33,8 @@ double complex analytic_psi(double x, double t,
 }
 
 
-// initial condition for free particles
-void setup_IC_free(double complex *psi,
+// initial condition for point mass like particles
+void setup_IC_point(double complex *psi,
 		   double x_bar, double v_bar, double sigma_x,
 		   struct run_param *tr)
 {
@@ -76,3 +76,29 @@ void setup_IC_free(double complex *psi,
   
 }
 
+// IC with v = A*x and \rho(x) = 
+void setup_IC_expand(double complex *psi, double expand_coeff, struct run_param *tr)
+{
+  assert(tr->nmesh_x != 0);
+  
+  tr->xmin = -1.0;
+  tr->xmax = 1.0;
+  tr->delta_x = (tr->xmax - tr->xmin)/tr->nmesh_x;
+
+  tr->dtime = tr->rho*SQR(tr->delta_x);
+  
+  //density profile
+  tr->mass = 1.0;
+  double sigma_x = 0.3;
+  double x0 = 0.0;
+
+  double hubble=0.5;
+  for(int32_t ix=0;ix<tr->nmesh_x;ix++) {
+    double x = tr->xmin + ((double)ix+0.5)*tr->delta_x;
+    double dens = tr->mass*exp(-SQR(x-x0)/(2.0*SQR(sigma_x)))/sqrt(2.0*M_PI*SQR(sigma_x));
+
+    double theta = 0.5*hubble*SQR(x);
+    psi[ix] = sqrt(dens)*cexp(_Complex_I*theta/tr->hbar);
+  }
+
+}
