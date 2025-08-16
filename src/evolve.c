@@ -35,11 +35,12 @@ void evolve_5pnt(double complex *psi, double *pot, struct run_param *tr,
   double off_diag1_imag = 16.0*tr->hbar*rho/48.0;
   double off_diag2_imag = -1.0*tr->hbar*rho/48.0;
 
-  static gsl_matrix_complex *MT;
-  static gsl_vector_complex *rhs, *rhs_, *lhs, *psi_new;
+  static gsl_matrix_complex *A, *MT;
+  static gsl_vector_complex *rhs, *rhs_, *psi_new;
   static gsl_permutation *perm;
 
   if(first_call) {
+    A  = gsl_matrix_complex_alloc(tr->nmesh_x, tr->nmesh_x);
     MT = gsl_matrix_complex_alloc(tr->nmesh_x, tr->nmesh_x);
     
     psi_new = gsl_vector_complex_alloc(tr->nmesh_x);
@@ -49,28 +50,41 @@ void evolve_5pnt(double complex *psi, double *pot, struct run_param *tr,
 
     rhs_ = gsl_vector_complex_alloc(tr->nmesh_x);
 
+    gsl_permutation_init(perm);
+    gsl_matrix_complex_set_zero(MT);
+
+    for(int32_t i=0;i<tr->nmesh_x;i++) {
+      double pot_imag = 0.5*pot[i]/tr->hbar;
+      gsl_matrix_complex_set(MT, i, i, gsl_complex_rect(0.0, -diag_imag+pot_imag));
+
+      int32_t ip1=(i+1) % tr->nmesh_x;
+      int32_t im1=(i-1+tr->nmesh_x) % tr->nmesh_x;
+      gsl_matrix_complex_set(MT, i, ip1, gsl_complex_rect(0.0, -off_diag1_imag));
+      gsl_matrix_complex_set(MT, i, im1, gsl_complex_rect(0.0, -off_diag1_imag));
+      
+      int32_t ip2=(i+2) % tr->nmesh_x;
+      int32_t im2=(i-2+tr->nmesh_x) % tr->nmesh_x;
+      gsl_matrix_complex_set(MT, i, ip2, gsl_complex_rect(0.0, -off_diag2_imag));
+      gsl_matrix_complex_set(MT, i, im2, gsl_complex_rect(0.0, -off_diag2_imag));
+    }
+
+    // Compute I-T = I+MT matrix
+    gsl_matrix_complex_memcpy(A, MT);
+    for(int32_t i=0;i<tr->nmesh_x;i++) {
+      gsl_complex Aii = gsl_matrix_complex_get(A, i, i);
+      Aii = gsl_complex_add(Aii, gsl_complex_rect(1.0, 0.0));
+      gsl_matrix_complex_set(A, i, i, Aii);
+    }
+
+    int signum;
+    gsl_linalg_complex_LU_decomp(A, perm, &signum);
+
     first_call = false;
   }
 
-  gsl_permutation_init(perm);
-  gsl_matrix_complex_set_zero(MT);
-
-  for(int32_t i=0;i<tr->nmesh_x;i++) {
-    double pot_imag = 0.5*pot[i]/tr->hbar;
-    gsl_matrix_complex_set(MT, i, i, gsl_complex_rect(0.0, -diag_imag+pot_imag));
-
-    int32_t ip1=(i+1) % tr->nmesh_x;
-    int32_t im1=(i-1+tr->nmesh_x) % tr->nmesh_x;
-    gsl_matrix_complex_set(MT, i, ip1, gsl_complex_rect(0.0, -off_diag1_imag));
-    gsl_matrix_complex_set(MT, i, im1, gsl_complex_rect(0.0, -off_diag1_imag));
-
-    int32_t ip2=(i+2) % tr->nmesh_x;
-    int32_t im2=(i-2+tr->nmesh_x) % tr->nmesh_x;
-    gsl_matrix_complex_set(MT, i, ip2, gsl_complex_rect(0.0, -off_diag2_imag));
-    gsl_matrix_complex_set(MT, i, im2, gsl_complex_rect(0.0, -off_diag2_imag));
-  }
 
   // Copy wave function to rsh
+#pragma omp parallel for schedule(auto)  
   for(int32_t i=0;i<tr->nmesh_x;i++) {
     gsl_vector_complex_set(rhs_, i,
 			   gsl_complex_rect(creal(psi[i]), cimag(psi[i])));
@@ -83,18 +97,10 @@ void evolve_5pnt(double complex *psi, double *pot, struct run_param *tr,
 		 gsl_complex_rect(-1.0, 0.0), MT, rhs_,
 		 gsl_complex_rect(1.0, 0.0), rhs);
 
-  // Compute I+MT matrix
-  for(int32_t i=0;i<tr->nmesh_x;i++) {
-    gsl_complex MTii = gsl_matrix_complex_get(MT, i, i);
-    MTii = gsl_complex_add(MTii, gsl_complex_rect(1.0, 0.0));
-    gsl_matrix_complex_set(MT, i, i, MTii);
-  }
-
-  int signum;
-  gsl_linalg_complex_LU_decomp(MT, perm, &signum);
-  gsl_linalg_complex_LU_solve(MT, perm, rhs, psi_new);
+  gsl_linalg_complex_LU_solve(A, perm, rhs, psi_new);
 
   // Copy the solution into the double complex array.
+#pragma omp parallel for schedule(auto)
   for(int32_t i=0;i<tr->nmesh_x;i++) {
     gsl_complex psi_i = gsl_vector_complex_get(psi_new, i);
     psi[i] = GSL_REAL(psi_i) + _Complex_I*GSL_IMAG(psi_i);
@@ -117,11 +123,12 @@ void evolve_5pnt_free(double complex *psi, struct run_param *tr, double dt)
   double off_diag1_imag = 16.0*tr->hbar*rho/48.0;
   double off_diag2_imag = -1.0*tr->hbar*rho/48.0;
 
-  static gsl_matrix_complex *MT;
-  static gsl_vector_complex *rhs, *rhs_, *lhs, *psi_new;
+  static gsl_matrix_complex *A, *MT;
+  static gsl_vector_complex *rhs, *rhs_, *psi_new;
   static gsl_permutation *perm;
 
   if(first_call) {
+    A  = gsl_matrix_complex_alloc(tr->nmesh_x, tr->nmesh_x);
     MT = gsl_matrix_complex_alloc(tr->nmesh_x, tr->nmesh_x);
     
     psi_new = gsl_vector_complex_alloc(tr->nmesh_x);
@@ -131,27 +138,40 @@ void evolve_5pnt_free(double complex *psi, struct run_param *tr, double dt)
 
     rhs_ = gsl_vector_complex_alloc(tr->nmesh_x);
 
+    gsl_permutation_init(perm);
+    gsl_matrix_complex_set_zero(MT);
+
+    for(int32_t i=0;i<tr->nmesh_x;i++) {
+      gsl_matrix_complex_set(MT, i, i, gsl_complex_rect(0.0, -diag_imag));
+
+      int32_t ip1=(i+1) % tr->nmesh_x;
+      int32_t im1=(i-1+tr->nmesh_x) % tr->nmesh_x;
+      gsl_matrix_complex_set(MT, i, ip1, gsl_complex_rect(0.0, -off_diag1_imag));
+      gsl_matrix_complex_set(MT, i, im1, gsl_complex_rect(0.0, -off_diag1_imag));
+      
+      int32_t ip2=(i+2) % tr->nmesh_x;
+      int32_t im2=(i-2+tr->nmesh_x) % tr->nmesh_x;
+      gsl_matrix_complex_set(MT, i, ip2, gsl_complex_rect(0.0, -off_diag2_imag));
+      gsl_matrix_complex_set(MT, i, im2, gsl_complex_rect(0.0, -off_diag2_imag));
+    }
+
+    // Compute I-T = I+MT matrix
+    gsl_matrix_complex_memcpy(A, MT);
+    for(int32_t i=0;i<tr->nmesh_x;i++) {
+      gsl_complex Aii = gsl_matrix_complex_get(A, i, i);
+      Aii = gsl_complex_add(Aii, gsl_complex_rect(1.0, 0.0));
+      gsl_matrix_complex_set(A, i, i, Aii);
+    }
+
+    int signum;
+    gsl_linalg_complex_LU_decomp(A, perm, &signum);
+
     first_call = false;
   }
 
-  gsl_permutation_init(perm);
-  gsl_matrix_complex_set_zero(MT);
-
-  for(int32_t i=0;i<tr->nmesh_x;i++) {
-    gsl_matrix_complex_set(MT, i, i, gsl_complex_rect(0.0, -diag_imag));
-
-    int32_t ip1=(i+1) % tr->nmesh_x;
-    int32_t im1=(i-1+tr->nmesh_x) % tr->nmesh_x;
-    gsl_matrix_complex_set(MT, i, ip1, gsl_complex_rect(0.0, -off_diag1_imag));
-    gsl_matrix_complex_set(MT, i, im1, gsl_complex_rect(0.0, -off_diag1_imag));
-
-    int32_t ip2=(i+2) % tr->nmesh_x;
-    int32_t im2=(i-2+tr->nmesh_x) % tr->nmesh_x;
-    gsl_matrix_complex_set(MT, i, ip2, gsl_complex_rect(0.0, -off_diag2_imag));
-    gsl_matrix_complex_set(MT, i, im2, gsl_complex_rect(0.0, -off_diag2_imag));
-  }
 
   // Copy wave function to rsh
+#pragma omp parallel for schedule(auto)  
   for(int32_t i=0;i<tr->nmesh_x;i++) {
     gsl_vector_complex_set(rhs_, i,
 			   gsl_complex_rect(creal(psi[i]), cimag(psi[i])));
@@ -159,23 +179,15 @@ void evolve_5pnt_free(double complex *psi, struct run_param *tr, double dt)
 			   gsl_complex_rect(creal(psi[i]), cimag(psi[i])));
   }
 
-  // (I-MT)*rhs = -MT*rhs + rhs
+  // (I+T)*rhs = (I-MT)*rhs = -MT*rhs + rhs
   gsl_blas_zgemv(CblasNoTrans,
 		 gsl_complex_rect(-1.0, 0.0), MT, rhs_,
 		 gsl_complex_rect(1.0, 0.0), rhs);
 
-  // Compute I+MT matrix
-  for(int32_t i=0;i<tr->nmesh_x;i++) {
-    gsl_complex MTii = gsl_matrix_complex_get(MT, i, i);
-    MTii = gsl_complex_add(MTii, gsl_complex_rect(1.0, 0.0));
-    gsl_matrix_complex_set(MT, i, i, MTii);
-  }
-
-  int signum;
-  gsl_linalg_complex_LU_decomp(MT, perm, &signum);
-  gsl_linalg_complex_LU_solve(MT, perm, rhs, psi_new);
+  gsl_linalg_complex_LU_solve(A, perm, rhs, psi_new);
 
   // Copy the solution into the double complex array.
+#pragma omp parallel for schedule(auto)
   for(int32_t i=0;i<tr->nmesh_x;i++) {
     gsl_complex psi_i = gsl_vector_complex_get(psi_new, i);
     psi[i] = GSL_REAL(psi_i) + _Complex_I*GSL_IMAG(psi_i);
@@ -196,11 +208,12 @@ void evolve_3pnt(double complex *psi, double *pot, struct run_param *tr, double 
   double diag_imag = -2.0*tr->hbar*rho/4.0;
   double off_diag_imag = tr->hbar*rho/4.0;
 
-  static gsl_matrix_complex *MT, *MT_;
-  static gsl_vector_complex *rhs, *rhs_, *lhs, *psi_new;
+  static gsl_matrix_complex *A, *MT;
+  static gsl_vector_complex *rhs, *rhs_, *psi_new;
   static gsl_permutation *perm;
 
   if(first_call) {
+    A  = gsl_matrix_complex_alloc(tr->nmesh_x, tr->nmesh_x);
     MT = gsl_matrix_complex_alloc(tr->nmesh_x, tr->nmesh_x);
     
     psi_new = gsl_vector_complex_alloc(tr->nmesh_x);
@@ -210,21 +223,33 @@ void evolve_3pnt(double complex *psi, double *pot, struct run_param *tr, double 
 
     rhs_ = gsl_vector_complex_alloc(tr->nmesh_x);
 
+    gsl_permutation_init(perm);
+    gsl_matrix_complex_set_zero(MT);
+
+    for(int32_t i=0;i<tr->nmesh_x;i++) {
+      double pot_imag = 0.5*pot[i]/tr->hbar;
+      gsl_matrix_complex_set(MT, i, i, gsl_complex_rect(0.0, -diag_imag+pot_imag));
+
+      int32_t ip1=(i+1) % tr->nmesh_x;
+      int32_t im1=(i-1+tr->nmesh_x) % tr->nmesh_x;
+      gsl_matrix_complex_set(MT, i, ip1, gsl_complex_rect(0.0, -off_diag_imag));
+      gsl_matrix_complex_set(MT, i, im1, gsl_complex_rect(0.0, -off_diag_imag));
+    }
+    
+    // compute I+MT matrix
+    gsl_matrix_complex_memcpy(A, MT);
+    for(int32_t i=0;i<tr->nmesh_x;i++) {
+      gsl_complex Aii = gsl_matrix_complex_get(A, i, i);
+      Aii = gsl_complex_add(Aii, gsl_complex_rect(1.0, 0.0));
+      gsl_matrix_complex_set(A, i, i, Aii);
+    }
+
+    int signum;
+    gsl_linalg_complex_LU_decomp(A, perm, &signum);
+
     first_call = false;
   }
 
-  gsl_permutation_init(perm);
-  gsl_matrix_complex_set_zero(MT);
-
-  for(int32_t i=0;i<tr->nmesh_x;i++) {
-    double pot_imag = 0.5*pot[i]/tr->hbar;
-    gsl_matrix_complex_set(MT, i, i, gsl_complex_rect(0.0, -diag_imag+pot_imag));
-
-    int32_t ip1=(i+1) % tr->nmesh_x;
-    int32_t im1=(i-1+tr->nmesh_x) % tr->nmesh_x;
-    gsl_matrix_complex_set(MT, i, ip1, gsl_complex_rect(0.0, -off_diag_imag));
-    gsl_matrix_complex_set(MT, i, im1, gsl_complex_rect(0.0, -off_diag_imag));
-  }
 
   // Copy wave function to rsh
   for(int32_t i=0;i<tr->nmesh_x;i++) {
@@ -239,16 +264,7 @@ void evolve_3pnt(double complex *psi, double *pot, struct run_param *tr, double 
 		 gsl_complex_rect(-1.0, 0.0), MT, rhs_,
 		 gsl_complex_rect(1.0, 0.0), rhs);
 
-  // compute I+MT matrix
-  for(int32_t i=0;i<tr->nmesh_x;i++) {
-    gsl_complex MTii = gsl_matrix_complex_get(MT, i, i);
-    MTii = gsl_complex_add(MTii, gsl_complex_rect(1.0, 0.0));
-    gsl_matrix_complex_set(MT, i, i, MTii);
-  }
-
-  int signum;
-  gsl_linalg_complex_LU_decomp(MT, perm, &signum);
-  gsl_linalg_complex_LU_solve(MT, perm, rhs, psi_new);
+  gsl_linalg_complex_LU_solve(A, perm, rhs, psi_new);
 
   // copy the solution into the double complex array.
   for(int32_t i=0;i<tr->nmesh_x;i++) {
@@ -273,11 +289,12 @@ void evolve_3pnt_free(double complex *psi, struct run_param *tr, double dt)
   double diag_imag = -2.0*tr->hbar*rho/4.0;
   double off_diag_imag = tr->hbar*rho/4.0;
 
-  static gsl_matrix_complex *MT, *MT_;
-  static gsl_vector_complex *rhs, *rhs_, *lhs, *psi_new;
+  static gsl_matrix_complex *A, *MT;
+  static gsl_vector_complex *rhs, *rhs_, *psi_new;
   static gsl_permutation *perm;
 
   if(first_call) {
+    A  = gsl_matrix_complex_alloc(tr->nmesh_x, tr->nmesh_x);
     MT = gsl_matrix_complex_alloc(tr->nmesh_x, tr->nmesh_x);
     
     psi_new = gsl_vector_complex_alloc(tr->nmesh_x);
@@ -287,20 +304,32 @@ void evolve_3pnt_free(double complex *psi, struct run_param *tr, double dt)
 
     rhs_ = gsl_vector_complex_alloc(tr->nmesh_x);
 
+    gsl_permutation_init(perm);
+    gsl_matrix_complex_set_zero(MT);
+
+    for(int32_t i=0;i<tr->nmesh_x;i++) {
+      gsl_matrix_complex_set(MT, i, i, gsl_complex_rect(0.0, -diag_imag));
+
+      int32_t ip1=(i+1) % tr->nmesh_x;
+      int32_t im1=(i-1+tr->nmesh_x) % tr->nmesh_x;
+      gsl_matrix_complex_set(MT, i, ip1, gsl_complex_rect(0.0, -off_diag_imag));
+      gsl_matrix_complex_set(MT, i, im1, gsl_complex_rect(0.0, -off_diag_imag));
+    }
+    
+    // compute I+MT matrix
+    gsl_matrix_complex_memcpy(A, MT);
+    for(int32_t i=0;i<tr->nmesh_x;i++) {
+      gsl_complex Aii = gsl_matrix_complex_get(A, i, i);
+      Aii = gsl_complex_add(Aii, gsl_complex_rect(1.0, 0.0));
+      gsl_matrix_complex_set(A, i, i, Aii);
+    }
+
+    int signum;
+    gsl_linalg_complex_LU_decomp(A, perm, &signum);
+
     first_call = false;
   }
 
-  gsl_permutation_init(perm);
-  gsl_matrix_complex_set_zero(MT);
-
-  for(int32_t i=0;i<tr->nmesh_x;i++) {
-    gsl_matrix_complex_set(MT, i, i, gsl_complex_rect(0.0, -diag_imag));
-
-    int32_t ip1=(i+1) % tr->nmesh_x;
-    int32_t im1=(i-1+tr->nmesh_x) % tr->nmesh_x;
-    gsl_matrix_complex_set(MT, i, ip1, gsl_complex_rect(0.0, -off_diag_imag));
-    gsl_matrix_complex_set(MT, i, im1, gsl_complex_rect(0.0, -off_diag_imag));
-  }
 
   // Copy wave function to rsh
   for(int32_t i=0;i<tr->nmesh_x;i++) {
@@ -315,16 +344,7 @@ void evolve_3pnt_free(double complex *psi, struct run_param *tr, double dt)
 		 gsl_complex_rect(-1.0, 0.0), MT, rhs_,
 		 gsl_complex_rect(1.0, 0.0), rhs);
 
-  // compute I+MT matrix
-  for(int32_t i=0;i<tr->nmesh_x;i++) {
-    gsl_complex MTii = gsl_matrix_complex_get(MT, i, i);
-    MTii = gsl_complex_add(MTii, gsl_complex_rect(1.0, 0.0));
-    gsl_matrix_complex_set(MT, i, i, MTii);
-  }
-
-  int signum;
-  gsl_linalg_complex_LU_decomp(MT, perm, &signum);
-  gsl_linalg_complex_LU_solve(MT, perm, rhs, psi_new);
+  gsl_linalg_complex_LU_solve(A, perm, rhs, psi_new);
 
   // copy the solution into the double complex array.
   for(int32_t i=0;i<tr->nmesh_x;i++) {

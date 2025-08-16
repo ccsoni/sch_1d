@@ -32,6 +32,8 @@ int main(int argc, char **argv)
 
   while(this_run.tnow < this_run.tend) {
 
+    if(this_run.nstep % 100 == 0) printf("# nstep = %d / tnow = %14.6e / mass = %14.6e\n", this_run.nstep, this_run.tnow, this_run.mass);
+
 #ifdef __SECOND_ORDER__
     evolve_3pnt(psi, pot, &this_run, this_run.dtime);
 #else
@@ -39,11 +41,12 @@ int main(int argc, char **argv)
 #endif
     calc_dens(psi, dens, &this_run);
     calc_velc(psi, velc, &this_run);
-    calc_df(psi, df, &this_run);
 
     this_run.tnow += this_run.dtime;
+    this_run.nstep++;
 
     if(this_run.tnow > this_run.output_timing[this_run.output_indx]) {
+      calc_df(psi, df, &this_run);
       output_data(psi, dens, velc, &this_run);
       output_df(df, &this_run);
       this_run.output_indx++;
