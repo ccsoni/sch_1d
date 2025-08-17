@@ -2,6 +2,8 @@
 CXX=g++
 CXXFLAGS=-O3 -ffast-math
 
+CXXFLAGS += -D__PERIODIC__
+
 SCH_1D_OBJ = main.o setup_IC.o moment.o evolve.o io.o df.o
 SCH_1D_DEP = $(SCH_1D_OBJ)
 

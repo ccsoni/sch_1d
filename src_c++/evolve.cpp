@@ -34,6 +34,7 @@ void evolve_5pnt(complexd *psi, run_param & tr, double dt)
   for(int32_t i=0;i<SQR(tr.nmesh_x);i++) MT[i] = 0.0;
 
   // setup the matrix MT
+#ifdef  __PERIODIC__
 #pragma omp parallel for schedule(auto)
   for(int32_t i=0;i<tr.nmesh_x;i++) {
     int32_t diag_indx = i + tr.nmesh_x*i;
@@ -50,6 +51,23 @@ void evolve_5pnt(complexd *psi, run_param & tr, double dt)
     MT[ip2 + tr.nmesh_x*i] = off_diag2;
     MT[im2 + tr.nmesh_x*i] = off_diag2;
   }
+#else // !__PERIODIC__
+  // diagonal component
+#pragma omp parallel for schedule(auto)
+  for(int32_t i=0;i<tr.nmesh_x;i++) MT[i + tr.nmesh_x*i] = diag;
+
+  // first off-diagonal component
+#pragma omp parallel for schedule(auto)
+  for(int32_t i=0;i<tr.nmesh_x-1;i++) MT[i + 1 + tr.nmesh_x*i] = off_diag1;
+#pragma omp parallel for schedule(auto)
+  for(int32_t i=1;i<tr.nmesh_x;i++) MT[i - 1 + tr.nmesh_x*i] = off_diag1;
+
+  // second off-diagonal component
+#pragma omp parallel for schedule(auto)
+  for(int32_t i=0;i<tr.nmesh_x-2;i++) MT[i + 2 + tr.nmesh_x*i] = off_diag2;
+#pragma omp parallel for schedule(auto)
+  for(int32_t i=2;i<tr.nmesh_x;i++) MT[i - 2 + tr.nmesh_x*i] = off_diag2;
+#endif
 
   // copy current wavefunc to rhs
 #pragma omp parallel for schedule(auto)  

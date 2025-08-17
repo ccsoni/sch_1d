@@ -14,9 +14,9 @@ int main(int argc, char **argv)
   velc = (double *) malloc(sizeof(double)*this_run.nmesh_x);
   pot = (double *)malloc(sizeof(double)*this_run.nmesh_x);
 
-  double x_bar = 0.5;
+  double x_bar = 0.0;
   double v_bar = 2.0*M_PI;
-  double sigma_x = 0.1;
+  double sigma_x = 0.05;
 
   setup_IC_point(psi, x_bar, v_bar, sigma_x, &this_run);
 
@@ -42,15 +42,15 @@ int main(int argc, char **argv)
     calc_dens(psi, dens, &this_run);
     calc_velc(psi, velc, &this_run);
 
-    this_run.tnow += this_run.dtime;
-    this_run.nstep++;
-
     if(this_run.tnow > this_run.output_timing[this_run.output_indx]) {
       calc_df(psi, df, &this_run);
       output_data(psi, dens, velc, &this_run);
       output_df(df, &this_run);
       this_run.output_indx++;
     }
+
+    this_run.tnow += this_run.dtime;
+    this_run.nstep++;
     
   }
  

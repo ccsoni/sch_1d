@@ -14,7 +14,11 @@ int main(int argc, char **argv)
   dens = static_cast<double*>(std::aligned_alloc(64, sizeof(double)*this_run.nmesh_x));
   velc = static_cast<double*>(std::aligned_alloc(64, sizeof(double)*this_run.nmesh_x));
 
-  setup_IC_free_particle(psi_1d, 0.5, 2.0*M_PI, 0.02, this_run);
+  double x_ = 0.0;
+  double v_ = 2.0*M_PI;
+  double sigma_x_ = 0.05;
+
+  setup_IC_free_particle(psi_1d, x_, v_, sigma_x_, this_run);
 
   DF = static_cast<double*>(std::aligned_alloc(64, sizeof(double)*this_run.nmesh_x*this_run.nmesh_v));
 
@@ -24,15 +28,18 @@ int main(int argc, char **argv)
 
   while(this_run.tnow < this_run.tend) {
 
-    if(this_run.nstep % 100 == 0) {
-      std::cout << "# t = " << std::scientific << std::setprecision(6) << this_run.tnow << std::endl;
-    }
-    
+    if(this_run.nstep % 100 == 0) printf("# nstep = %d / tnow = %14.6e / mass = %14.6e\n", this_run.nstep, this_run.tnow, this_run.mass);
+
+#ifdef __SECOND_ORDER__
+    evolve_3pnt(psi_1d, this_run, this_run.dtime);
+#else
     evolve_5pnt(psi_1d, this_run, this_run.dtime);
+#endif
+
+    calc_dens(psi_1d, dens, this_run);
+    calc_velc(psi_1d, velc, this_run);
 
     if(this_run.tnow > this_run.next_output_timing()) {
-      calc_dens(psi_1d, dens, this_run);
-      calc_velc(psi_1d, velc, this_run);
       calc_DF(DF, psi_1d, this_run);
       
       output_data(psi_1d, dens, velc, this_run);
