@@ -14,7 +14,7 @@ void output_data(complexd *psi, double *dens, double *velc, run_param & tr)
     double x = tr.xmin + ((double)ix+0.5)*tr.delta_x;
 
     complexd analytic = analytic_psi(x, tr.tnow,
-				     0.0, 2.0*M_PI, 0.1, tr.hbar);
+				     0.0, 2.0*M_PI, 0.05, tr.hbar);
 
     fprintf(fp, "# tnow = %14.6e\n", tr.tnow);
       
