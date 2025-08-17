@@ -13,7 +13,7 @@ void output_data(double complex *psi, double *dens, double *velc,
     double x = tr->xmin + ((double)ix+0.5)*tr->delta_x;
 
     double complex analytic = analytic_psi(x, tr->tnow,
-					   0.5, 2.0*M_PI, 0.1, tr->hbar);
+					   0.0, 2.0*M_PI, 0.05, tr->hbar);
       
     fprintf(fp, "%14.6e %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e\n",
 	    x, dens[ix], velc[ix], creal(psi[ix]), cimag(psi[ix]),
