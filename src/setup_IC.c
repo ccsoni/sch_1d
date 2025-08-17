@@ -25,9 +25,10 @@ double complex analytic_psi(double x, double t,
   double exp_arg_real = -SQR(x-q-v*t)/(4.0*SQR(sigma_x)*sig);
   double exp_arg_imag = SQR(x-q)*hbar*t/(8.0*QUAD(sigma_x)) + v*(x-q)/hbar - 0.5*SQR(v)*t/hbar;
 
-  double complex exp_arg = exp_arg_real + _Complex_I*exp_arg_imag;
+  double complex exp_arg = exp_arg_real + _Complex_I*exp_arg_imag/sig;
+  double complex fact = 1.0/csqrt(1.0+_Complex_I*hbar*t/(2.0*SQR(sigma_x)));
   
-  double complex wf = cexp(exp_arg)/(QUAD_ROOT_2PI*sqrt(sigma_x));
+  double complex wf = cexp(exp_arg)/(QUAD_ROOT_2PI*sqrt(sigma_x))*fact;
 
   return wf;
 }
@@ -40,7 +41,7 @@ void setup_IC_point(double complex *psi,
 {
   assert(tr->nmesh_x != 0);
   
-  tr->xmin = 0.0;
+  tr->xmin = -1.0;
   tr->xmax = 1.0;
   tr->delta_x = (tr->xmax - tr->xmin)/tr->nmesh_x;
 
@@ -48,7 +49,7 @@ void setup_IC_point(double complex *psi,
 
   int32_t nmirror = 0.5/sigma_x;
 
-#if 0
+#if 1
   for(int32_t im=0;im<tr->nmesh_x;im++) {
     double x = tr->xmin + ((double)im+0.5)*tr->delta_x;
     psi[im] = coherent_wavefunc(x, x_bar, v_bar, sigma_x, tr->hbar);

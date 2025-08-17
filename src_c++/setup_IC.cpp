@@ -23,11 +23,12 @@ complexd analytic_psi(double x, double t,
   double dx = x-q;
 
   double exp_arg_real = -SQR(x-q-v*t)/(4.0*SQR(sigma_x)*sig);
-  double exp_arg_imag = SQR(x-q)*hbar*t/(8.0*QUAD(sigma_x)) + v*(x-q)/hbar - 0.5*SQR(v)*t/hbar;
+  double exp_arg_imag = (SQR(x-q)*hbar*t/(8.0*QUAD(sigma_x)) + v*(x-q)/hbar - 0.5*SQR(v)*t/hbar)/sig;
 
   complexd exp_arg = complexd(exp_arg_real, exp_arg_imag);
+  complexd fact = complexd(1.0, hbar*t/(2.0*SQR(sigma_x)));
 
-  complexd wf = exp(exp_arg)/(QUAD_ROOT_2PI*sqrt(sigma_x));
+  complexd wf = exp(exp_arg)/(QUAD_ROOT_2PI*sqrt(sigma_x))/sqrt(fact);
 
   return wf;
 }
@@ -38,8 +39,8 @@ void setup_IC_free_particle(complexd *psi, double x_, double v_,
   tr.tnow = 0.0;
   tr.nstep = 0;
   
-  tr.xmin = 0.0;
-  tr.xmax = 1.0;
+  tr.xmin =  -1.0;
+  tr.xmax =  1.0;
   
   tr.delta_x = (tr.xmax - tr.xmin)/static_cast<double>(tr.nmesh_x);
   tr.dtime = tr.rho*SQR(tr.delta_x);
