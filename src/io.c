@@ -5,7 +5,7 @@ void output_data(double complex *psi, double *dens, double *velc,
 {
   static char output_filename[MODEL_NAME_LENGTH+10];
 
-  sprintf(output_filename, "%s_%02d.dat",
+  sprintf(output_filename, "%s_%03d.dat",
 	  tr->model_name, tr->output_indx);
   FILE *fp = fopen(output_filename, "w");
 

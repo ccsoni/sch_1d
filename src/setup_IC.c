@@ -69,9 +69,13 @@ void setup_IC_point(double complex *psi,
   tr->vmin = -M_PI*tr->hbar/tr->delta_x;
   tr->vmax =  M_PI*tr->hbar/tr->delta_x;
 
+  // spatial resolution in the phase space
+  tr->sigma_x = 4.0*tr->delta_x;
+  tr->sigma_v = 0.5*tr->hbar/tr->sigma_x;
+  
   // mesh spacing in the velocity space is set to half of the one
   // obtained with the unceartainty principle
-  tr->delta_v = 0.25*tr->hbar/tr->delta_x;
+  tr->delta_v = tr->sigma_v/4.0;
 
   tr->nmesh_v = (tr->vmax-tr->vmin)/tr->delta_v;
   
@@ -92,14 +96,29 @@ void setup_IC_expand(double complex *psi, double expand_coeff, struct run_param 
   tr->mass = 1.0;
   double sigma_x = 0.3;
   double x0 = 0.0;
+  double xcut=0.5;
 
-  double hubble=0.5;
   for(int32_t ix=0;ix<tr->nmesh_x;ix++) {
     double x = tr->xmin + ((double)ix+0.5)*tr->delta_x;
-    double dens = tr->mass*exp(-SQR(x-x0)/(2.0*SQR(sigma_x)))/sqrt(2.0*M_PI*SQR(sigma_x));
 
-    double theta = 0.5*hubble*SQR(x);
+    double dens = (fabs(x) < xcut) ? 1.0-fabs(x)/xcut : 0.0;
+ 
+    double theta = 0.5*expand_coeff*SQR(x);
     psi[ix] = sqrt(dens)*cexp(_Complex_I*theta/tr->hbar);
   }
+
+  // range of velocity in phase space based on the Nyquist wavelength
+  tr->vmin = -M_PI*tr->hbar/tr->delta_x;
+  tr->vmax =  M_PI*tr->hbar/tr->delta_x;
+
+  // spatial resolution in the phase space
+  tr->sigma_x = 4.0*tr->delta_x;
+  tr->sigma_v = 0.5*tr->hbar/tr->sigma_x;
+
+  // mesh spacing in the velocity space is set to half of the one
+  // obtained with the unceartainty principle
+  tr->delta_v = tr->sigma_v/4.0;
+
+  tr->nmesh_v = (tr->vmax-tr->vmin)/tr->delta_v;
 
 }

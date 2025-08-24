@@ -15,16 +15,17 @@ int main(int argc, char **argv)
   pot = (double *)malloc(sizeof(double)*this_run.nmesh_x);
 
   double x_bar = 0.0;
-  double v_bar = 2.0*M_PI;
+  double v_bar = 1.0*M_PI;
   double sigma_x = 0.05;
 
   setup_IC_point(psi, x_bar, v_bar, sigma_x, &this_run);
+  //  setup_IC_expand(psi, v_bar, &this_run);
 
   df = (double *) malloc(sizeof(double)*this_run.nmesh_x*this_run.nmesh_v);  
 
+  calc_df(psi, df, &this_run);
   calc_dens(psi, dens, &this_run);
   calc_velc(psi, velc, &this_run);
-  calc_df(psi, df, &this_run);
 
   calc_pot(pot, &this_run);
 

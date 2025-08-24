@@ -24,6 +24,9 @@ struct run_param {
   double rho;  // dt/(dx)^2
   double hbar;
 
+  // phase space resolution where sigma_x*sigma_v = hbar/2
+  double sigma_x, sigma_v;
+
   double xmax, xmin;
   double delta_x;
 
