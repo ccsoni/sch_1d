@@ -15,7 +15,7 @@ int main(int argc, char **argv)
   pot = (double *)malloc(sizeof(double)*this_run.nmesh_x);
 
   double x_bar = 0.0;
-  double v_bar = 1.0*M_PI;
+  double v_bar = 2.0*M_PI;
   double sigma_x = 0.05;
 
   setup_IC_point(psi, x_bar, v_bar, sigma_x, &this_run);

@@ -54,7 +54,7 @@ void evolve_5pnt(double complex *psi, double *pot, struct run_param *tr,
     gsl_matrix_complex_set_zero(MT);
 
     for(int32_t i=0;i<tr->nmesh_x;i++) {
-      double pot_imag = 0.5*pot[i]/tr->hbar;
+      double pot_imag = 0.5*pot[i]*dt/tr->hbar;
       gsl_matrix_complex_set(MT, i, i, gsl_complex_rect(0.0, -diag_imag+pot_imag));
 
       int32_t ip1=(i+1) % tr->nmesh_x;
@@ -227,7 +227,7 @@ void evolve_3pnt(double complex *psi, double *pot, struct run_param *tr, double 
     gsl_matrix_complex_set_zero(MT);
 
     for(int32_t i=0;i<tr->nmesh_x;i++) {
-      double pot_imag = 0.5*pot[i]/tr->hbar;
+      double pot_imag = 0.5*pot[i]*dt/tr->hbar;
       gsl_matrix_complex_set(MT, i, i, gsl_complex_rect(0.0, -diag_imag+pot_imag));
 
       int32_t ip1=(i+1) % tr->nmesh_x;
