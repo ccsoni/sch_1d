@@ -6,19 +6,35 @@ import os
 import re
 import sys
 
-column = 1
+def gaussian_func(x, A, mu,  sigma):
+    exponent = -0.5*(x-mu)*(x-mu)/(sigma*sigma)
+
+    return A*exp(exponent)
+
+def read_header(filename):
+    with open(filename, "r") as f:
+        hbar = float(f.readline().strip())
+        tnow = float(f.readline().strip())
+    
+    return hbar, tnow
 
 def extract_index(filename):
     match = re.search(r'(\d+)(?=\.\w+$)', filename)
     return int(match.group(1)) if match else -1
 
 def update(frame):
-    data = np.loadtxt(file_list[frame])
+    hbar, tnow = read_header(file_list[frame])
+    data = np.loadtxt(file_list[frame], skiprows=2)
     x, y = data[:, 0], data[:, column]
     line.set_data(x, y)
     ax.relim()
     ax.autoscale_view()  # auto scale the vertical axis
     ax.set_title(f"Frame {frame} - {file_list[frame]}")
+    ax.text(0.05, 0.95,
+            f"$\hbar$ = {hbar:.2e}\n$t$ = {tnow:.2f}",
+            transform=ax.transAxes,
+            va="top", ha="left",
+            fontsize=12, bbox=dict(boxstyle="round", facecolor="white"))
     return line,
 
 def inspect_data_range(file_list):
@@ -26,7 +42,7 @@ def inspect_data_range(file_list):
     all_y = []
     
     for f in file_list:
-        data = np.loadtxt(f)
+        data = np.loadtxt(f, skiprows=2)
         all_x.extend(data[:, 0])
         all_y.extend(data[:, column])
     
@@ -82,7 +98,8 @@ if __name__  == "__main__":
     plt.close(fig)
 
     for i, filename in enumerate(file_list):
-        data = np.loadtxt(filename)
+        hbar, tnow = read_header(filename)
+        data = np.loadtxt(filename, skiprows=2)
         x = data[:,0]
         y = data[:,column]
 
@@ -96,6 +113,12 @@ if __name__  == "__main__":
         ax.set_ylim(ylim)
         ax.grid(axis='x',which='major', color='#e9e9e9')
         ax.grid(axis='y',which='major', color='#e9e9e9')
+
+        ax.text(0.05, 0.95,
+                f"$\hbar$ = {hbar:.2e}\n$t$ = {tnow:.2f}",
+                transform=ax.transAxes,
+                va="top", ha="left",
+                fontsize=12, bbox=dict(boxstyle="round", facecolor="white"))
 
         ax.plot(x,y);
 
