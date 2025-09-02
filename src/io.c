@@ -9,6 +9,7 @@ void output_data(double complex *psi, double *dens, double *velc,
 	  tr->model_name, tr->output_indx);
   FILE *fp = fopen(output_filename, "w");
 
+  fprintf(fp, "%d\n", tr->nmesh_x);
   fprintf(fp, "%14.6e\n", tr->hbar);
   fprintf(fp, "%14.6e\n", tr->tnow);
   for(int32_t ix=0;ix<tr->nmesh_x;ix++) {

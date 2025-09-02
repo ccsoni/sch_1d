@@ -14,12 +14,12 @@ int main(int argc, char **argv)
   velc = (double *) malloc(sizeof(double)*this_run.nmesh_x);
   pot = (double *)malloc(sizeof(double)*this_run.nmesh_x);
 
-  double x_bar = 0.0;
-  double v_bar = 2.0*M_PI;
+  double x_bar = -0.5;
+  double v_bar = 1.0;
   double sigma_x = 0.05;
 
   setup_IC_point(psi, x_bar, v_bar, sigma_x, &this_run);
-  //  setup_IC_expand(psi, v_bar, &this_run);
+  //setup_IC_expand(psi, v_bar, &this_run);
 
   df = (double *) malloc(sizeof(double)*this_run.nmesh_x*this_run.nmesh_v);  
 
@@ -35,10 +35,12 @@ int main(int argc, char **argv)
 
     if(this_run.nstep % 100 == 0) printf("# nstep = %d / tnow = %14.6e / mass = %14.6e\n", this_run.nstep, this_run.tnow, this_run.mass);
 
-#ifdef __SECOND_ORDER__
+#ifdef __3_PNT_APPROX__
     evolve_3pnt(psi, pot, &this_run, this_run.dtime);
-#else
+#elif defined (__5_PNT_APPROX__)
     evolve_5pnt(psi, pot, &this_run, this_run.dtime);
+#elif defined (__7_PNT_APPROX__)
+    evolve_7pnt(psi, pot, &this_run, this_run.dtime);
 #endif
     calc_dens(psi, dens, &this_run);
     calc_velc(psi, velc, &this_run);

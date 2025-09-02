@@ -58,6 +58,7 @@ void evolve_3pnt_free(double complex *, struct run_param*, double);
 void evolve_5pnt_free(double complex *, struct run_param*, double);
 void evolve_3pnt(double complex *, double *, struct run_param*, double);
 void evolve_5pnt(double complex *, double *, struct run_param*, double);
+void evolve_7pnt(double complex *, double *, struct run_param*, double);
 void output_data(double complex *, double *, double *velc, struct run_param *);
 void output_df(double *, struct run_param *);
 double complex analytic_psi(double, double, double, double, double, double);
