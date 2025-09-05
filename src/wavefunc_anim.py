@@ -10,6 +10,29 @@ from scipy.optimize import curve_fit
 time_arr = []
 peak_pos = []
 
+# whether or not to plot the analytic wave function of coherent state
+show_analytic_psi=True
+
+def s(t, hbar, sigma_x):
+    return 1.0+0.25*(hbar*t/(sigma_x*sigma_x))**2
+
+def psi_real_imag(x, t, x0, v0, hbar, sigma_x):
+    const = np.pow(2.0*np.pi*sigma_x**2, -0.25)
+    fact = np.sqrt(1.0+0.5j*hbar*t/(sigma_x*sigma_x))
+    sigma_t2 = sigma_x*sigma_x*s(t, hbar, sigma_x)
+    exponent_real = -0.25*(x-x0-v0*t)**2/sigma_t2
+    exponent_imag = (0.125*((x-x0)/(sigma_x*sigma_x))**2*hbar*t + v0*(x-x0)/hbar - (v0**2*t)/(2.0*hbar))/s(t, hbar, sigma_x)
+
+    result = const*np.exp(exponent_real + 1j*exponent_imag)/fact
+
+    return result.real, result.imag
+
+def psi_squared_free(x, t, x0, v0, hbar, sigma_x):
+    sigma_t = sigma_x*np.sqrt(1.0 + 0.25*(hbar*t)**2/(sigma_x**4))
+    exponent = -0.5*((x-x0-v0*t)/sigma_t)**2
+
+    return np.exp(exponent)/sigma_t/np.sqrt(2.0*np.pi)
+
 def gaussian_func(x, A, mu,  sigma):
     exponent = -0.5*(x-mu)*(x-mu)/(sigma*sigma)
 
@@ -35,12 +58,8 @@ def update(frame):
     line.set_data(x, y)
     ax.relim()
     ax.autoscale_view()  # auto scale the vertical axis
-    ax.set_title(f"Frame {frame} - {file_list[frame]}")
-    ax.text(0.05, 0.95,
-            f"$N$ = {nmesh}\n$\hbar$ = {hbar:.2e}\n$t$ = {tnow:.2f}",
-            transform=ax.transAxes,
-            va="top", ha="left",
-            fontsize=12, bbox=dict(boxstyle="round", facecolor="white"))
+    ax.set_title(f"$N$ = {nmesh} / $\hbar$ = {hbar:.2e} / $t$ = {tnow:.2f}",fontsize=10)
+
     return line,
 
 def inspect_data_range(file_list):
@@ -79,7 +98,6 @@ if __name__  == "__main__":
        
     model_name = sys.argv[1]
 
-#    file_list = sorted(glob.glob('model_??.dat'), key=extract_index)
     file_list = sorted(glob.glob(sys.argv[1]), key=extract_index)
 
     column = int(sys.argv[2])
@@ -99,7 +117,7 @@ if __name__  == "__main__":
     ani = animation.FuncAnimation(
         fig, update, frames=len(file_list), init_func=init, blit=False, interval=500, repeat=False)
 
-#    plt.show()
+    #    plt.show()
     plt.close(fig)
 
     # eliminate extension
@@ -113,10 +131,13 @@ if __name__  == "__main__":
         x = data[:,0]
         y = data[:,column]
 
+        xx = np.linspace(-1,1,1024)
+        psi_squared = psi_squared_free(xx, tnow, -0.5, 1.0, hbar, 0.05)
+        psi_real, psi_imag = psi_real_imag(xx, tnow, -0.5, 1.0, hbar, 0.05)
+
         if column==1:
             fit_, cov_ = curve_fit(gaussian_func, x, y, p0=[1.0, x[np.argmax(y)], 0.2])
             amp_fit, peak_pos_fit, sigam_fit = fit_
-            #        print(tnow, peak_pos_fit)
             time_arr.append(tnow)
             peak_pos.append(peak_pos_fit)
 
@@ -139,13 +160,17 @@ if __name__  == "__main__":
         ax.grid(axis='x',which='major', color='#e9e9e9')
         ax.grid(axis='y',which='major', color='#e9e9e9')
 
-        ax.text(0.05, 0.95,
-                f"$N$ = {nmesh}\n$\hbar$ = {hbar:.2e}\n$t$ = {tnow:.2f}",
-                transform=ax.transAxes,
-                va="top", ha="left",
-                fontsize=12, bbox=dict(boxstyle="round", facecolor="white"))
+        ax.set_title(f"$N$ = {nmesh} / $\hbar$ = {hbar:.2e} / $t$ = {tnow:.2f}",fontsize=10)
 
-        ax.scatter(x,y,marker="s",s=16);
+        ax.scatter(x,y,marker="s", s=4);
+
+        if show_analytic_psi:
+            if column==1:
+                ax.plot(xx, psi_squared, color="red",lw=0.5)
+            if column==3:
+                ax.plot(xx, psi_real, color="red", lw=0.5)
+            if column==4:
+                ax.plot(xx, psi_imag, color="red", lw=0.5)
 
         output_base, _= os.path.splitext(filename)
         output_filename = output_base+".png"

@@ -14,7 +14,7 @@ int main(int argc, char **argv)
   velc = (double *) malloc(sizeof(double)*this_run.nmesh_x);
   pot = (double *)malloc(sizeof(double)*this_run.nmesh_x);
 
-  double x_bar = -0.5;
+  double x_bar = 0.0;
   double v_bar = 1.0;
   double sigma_x = 0.05;
 

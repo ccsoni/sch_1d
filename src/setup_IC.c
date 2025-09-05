@@ -3,7 +3,7 @@
 double complex coherent_wavefunc(double x, double q, double v, double sigma_x,
 				 double hbar)
 {
-  double complex wf = cexp(_Complex_I*v*x/hbar)*exp(-0.25*SQR((x-q)/sigma_x));
+  double complex wf = cexp(_Complex_I*v*(x-q)/hbar)*exp(-0.25*SQR((x-q)/sigma_x));
   double C= QUAD_ROOT_2PI*sqrt(sigma_x);
 
   return wf/C;

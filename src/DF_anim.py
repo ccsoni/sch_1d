@@ -8,15 +8,26 @@ import sys
 
 column = 1
 
+def read_header(filename):
+    with open(filename, "r") as f:
+        nmesh_x, nmesh_v = map(int,f.readline().split())
+        hbar = float(f.readline().strip())
+        tnow = float(f.readline().strip())
+    
+    return nmesh_x, nmesh_v, hbar, tnow
+
 def extract_index(filename):
     match = re.search(r'(\d+)(?=\.\w+$)', filename)
     return int(match.group(1)) if match else -1
 
 def update(frame):
-    data = np.loadtxt(file_list[frame])
+    nmesh_x, nmesh_v, hbar, tnow = read_header(file_list[frame])
+    data = np.loadtxt(file_list[frame],skiprows=3)
     Z = data[:, 2].reshape(len(xmesh), len(ymesh))
     mesh.set_array(Z.ravel())  # pcolormesh ÌFXV
-    ax.set_title(file_list[frame])
+
+    ax.set_title(f"$(N_x, N_v)$ = {nmesh_x, nmesh_v} / $\hbar$ = {hbar:.2e} / $t$ = {tnow:.2f}", fontsize=10)
+
     return mesh,
 
 if __name__ == "__main__":
@@ -40,7 +51,8 @@ if __name__ == "__main__":
     ax.grid(axis='y',which='major', color='#e9e9e9')
 
     # read the first data
-    data0 = np.loadtxt(file_list[0])
+    nmesh_x, nmesh_v, hbar, tnow = read_header(file_list[0])
+    data0 = np.loadtxt(file_list[0], skiprows=3)
     x = data0[:,0]
     y = data0[:,1]
     z = data0[:,2]
@@ -53,27 +65,30 @@ if __name__ == "__main__":
 
     all_min, all_max = np.inf, -np.inf
     for f in file_list:
-        d = np.loadtxt(f)[:, 2]
+        d = np.loadtxt(f,skiprows=3)[:, 2]
         all_min = min(all_min, np.min(d))
         all_max = max(all_max, np.max(d))
     
     
+    ax.set_xlabel("x",fontsize=12);
+    ax.set_ylabel("v",fontsize=12);
     mesh = ax.pcolormesh(Y, X, Z, cmap='viridis', shading='auto',
                          vmin=all_min, vmax=all_max)
     
     fig.colorbar(mesh,ax=ax)
-    ax.set_title(file_list[0])
 
+    ax.set_title(f"$(N_x, N_v)$ = {nmesh_x, nmesh_v}/ $\hbar$ = {hbar:.2e}/ $t$ = {tnow:.2f}", fontsize=10)
 
     ani = animation.FuncAnimation(
         fig, update, frames=len(file_list), blit=False, interval=500
     )
 
-    plt.show()
+    #plt.show()
     plt.close(fig)
 
     for i, filename in enumerate(file_list):
-        data = np.loadtxt(file_list[i])
+        nmesh_x, nmesh_v, hbar, tnow = read_header(filename)
+        data = np.loadtxt(file_list[i],skiprows=3)
         x = data[:,0]
         y = data[:,1]
         z = data[:,2]
@@ -93,11 +108,16 @@ if __name__ == "__main__":
         ax.grid(axis='x',which='major', color='#e9e9e9')
         ax.grid(axis='y',which='major', color='#e9e9e9')
 
+        ax.set_xlabel("x")
+        ax.set_ylabel("v")
+
         mesh = ax.pcolormesh(Y, X, Z, cmap='viridis', shading='auto',
                              vmin=all_min, vmax=all_max)
     
         fig.colorbar(mesh,ax=ax)
 
+        ax.set_title(f"$(N_x, N_v)$ = {nmesh_x, nmesh_v} / $\hbar$ = {hbar:.2e} / $t$ = {tnow:.2f}", fontsize=10)
+        
         output_base, _= os.path.splitext(filename)
         output_filename = output_base+".png"
 

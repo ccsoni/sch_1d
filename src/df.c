@@ -43,6 +43,10 @@ void output_df(double *df, struct run_param *tr)
 
   fp_DF = fopen(output_filename, "w");
 
+  fprintf(fp_DF, "%d %d\n", tr->nmesh_x, tr->nmesh_v);
+  fprintf(fp_DF, "%14.6e\n", tr->hbar);
+  fprintf(fp_DF, "%14.6e\n", tr->tnow);
+
   for(int32_t ix=0;ix<tr->nmesh_x;ix++) {
     for(int32_t iv=0;iv<tr->nmesh_v;iv++) {
       double x = tr->xmin + ((double)ix+0.5)*tr->delta_x;
