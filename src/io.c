@@ -1,6 +1,6 @@
 #include "sch_1d.h"
 
-void output_data(double complex *psi, double *dens, double *velc,
+void output_data(double complex *psi, double *prob, double *velc,
 		 struct run_param *tr)
 {
   static char output_filename[MODEL_NAME_LENGTH+10];
@@ -19,7 +19,7 @@ void output_data(double complex *psi, double *dens, double *velc,
 					   -0.5, 1.0, 0.05, tr->hbar);
       
     fprintf(fp, "%14.6e %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e\n",
-	    x, dens[ix], velc[ix], creal(psi[ix]), cimag(psi[ix]),
+	    x, prob[ix], velc[ix], creal(psi[ix]), cimag(psi[ix]),
 	    creal(analytic), cimag(analytic), SQR(cabs(analytic)));
   }
 

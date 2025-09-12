@@ -1,11 +1,11 @@
 #include "sch_1d.h"
 
-void calc_dens(double complex *psi, double *dens, struct run_param *tr)
+void calc_prob(double complex *psi, double *prob, struct run_param *tr)
 {
   tr->mass=0.0;
   for(int32_t im=0;im<tr->nmesh_x;im++) {
-    dens[im] = psi[im]*conj(psi[im]);
-    tr->mass += dens[im]*tr->delta_x;
+    prob[im] = psi[im]*conj(psi[im]);
+    tr->mass += prob[im]*tr->delta_x;
   }
 }
 
@@ -24,9 +24,9 @@ void calc_velc(double complex *psi, double *velc, struct run_param *tr)
 #else 
     double complex d_psi = (8.0*(psi[ixp1]-psi[ixm1])-(psi[ixp2]-psi[ixm2]))/(12.0*tr->delta_x);
 #endif
-    double dens = psi[ix]*conj(psi[ix]);
+    double prob = psi[ix]*conj(psi[ix]);
 
-    velc[ix] = tr->hbar*cimag(d_psi*conj(psi[ix]))/dens;
+    velc[ix] = tr->hbar*cimag(d_psi*conj(psi[ix]))/prob;
   }
 }
 

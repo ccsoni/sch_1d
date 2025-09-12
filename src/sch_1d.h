@@ -13,6 +13,8 @@
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_linalg.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 #define MODEL_NAME_LENGTH (256)
 
@@ -36,7 +38,7 @@ struct run_param {
   double mass;
 
   char model_name[MODEL_NAME_LENGTH];
-  
+
   int32_t output_indx, noutput;
   double *output_timing;
 };
@@ -62,7 +64,7 @@ void evolve_7pnt(double complex *, double *, struct run_param*, double);
 void output_data(double complex *, double *, double *velc, struct run_param *);
 void output_df(double *, struct run_param *);
 double complex analytic_psi(double, double, double, double, double, double);
-void calc_dens(double complex *, double *, struct run_param *);
+void calc_prob(double complex *, double *, struct run_param *);
 void calc_velc(double complex *, double *, struct run_param *);
 void calc_pot(double *, struct run_param *);
 void calc_df(double complex *, double *, struct run_param *);

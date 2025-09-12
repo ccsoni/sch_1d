@@ -11,7 +11,7 @@ time_arr = []
 peak_pos = []
 
 # whether or not to plot the analytic wave function of coherent state
-show_analytic_psi=True
+show_analytic_psi=False
 
 def s(t, hbar, sigma_x):
     return 1.0+0.25*(hbar*t/(sigma_x*sigma_x))**2
@@ -117,7 +117,7 @@ if __name__  == "__main__":
     ani = animation.FuncAnimation(
         fig, update, frames=len(file_list), init_func=init, blit=False, interval=500, repeat=False)
 
-    #    plt.show()
+###    plt.show()
     plt.close(fig)
 
     # eliminate extension
