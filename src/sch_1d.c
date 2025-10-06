@@ -19,24 +19,31 @@ int main(int argc, char **argv)
   double v_bar = 1.0;
   double sigma_x = 0.05;
 
-  //setup_IC_point(psi, x_bar, v_bar, sigma_x, &this_run);
-  setup_IC_expand(psi, v_bar, &this_run);
+  setup_IC_point(psi, x_bar, v_bar, sigma_x, &this_run);
+  //  setup_IC_expand(psi, v_bar, &this_run);
 
   df = (double *) malloc(sizeof(double)*this_run.nmesh_x*this_run.nmesh_v);
 
-  calc_df(psi, df, &this_run);
+  calc_df(psi, df, dens, &this_run);
   calc_prob(psi, prob, &this_run);
   calc_velc(psi, velc, &this_run);
 
   calc_pot(pot, &this_run);
+  calc_energy(df, pot, &this_run);
 
   printf("# dt = %12.4e\n", this_run.dtime);
+  printf("# nstep   tnow         mass         K            W           E \n");
 
   while(this_run.tnow < this_run.tend) {
 
     if(this_run.nstep % 100 == 0) {
-      printf("# nstep = %d / tnow = %14.6e / mass = %14.6e\n",
-	     this_run.nstep, this_run.tnow, this_run.mass);
+      calc_df(psi, df, dens, &this_run);
+      calc_energy(df, pot, &this_run);
+
+      printf(" %6d %12.4e %12.4e %12.4e %12.4e %12.4e\n",
+	     this_run.nstep, this_run.tnow, this_run.mass,
+	     this_run.Kene, this_run.Wene,
+	     this_run.Kene+this_run.Wene);
     }
 
 #ifdef __3_PNT_APPROX__
@@ -50,7 +57,8 @@ int main(int argc, char **argv)
     calc_velc(psi, velc, &this_run);
 
     if(this_run.tnow > this_run.output_timing[this_run.output_indx]) {
-      calc_df(psi, df, &this_run);
+      calc_df(psi, df, dens, &this_run);
+      calc_energy(df, pot, &this_run);
       output_data(psi, prob, velc, &this_run);
       output_df(df, &this_run);
       this_run.output_indx++;
@@ -58,7 +66,6 @@ int main(int argc, char **argv)
 
     this_run.tnow += this_run.dtime;
     this_run.nstep++;
-
   }
 
   free(psi);

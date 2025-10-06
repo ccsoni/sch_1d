@@ -27,7 +27,7 @@ double complex analytic_psi(double x, double t,
 
   double complex exp_arg = exp_arg_real + _Complex_I*exp_arg_imag/sig;
   double complex fact = 1.0/csqrt(1.0+_Complex_I*hbar*t/(2.0*SQR(sigma_x)));
-  
+
   double complex wf = cexp(exp_arg)/(QUAD_ROOT_2PI*sqrt(sigma_x))*fact;
 
   return wf;
@@ -36,11 +36,11 @@ double complex analytic_psi(double x, double t,
 
 // initial condition for point mass like particles
 void setup_IC_point(double complex *psi,
-		   double x_bar, double v_bar, double sigma_x,
-		   struct run_param *tr)
+		    double x_bar, double v_bar, double sigma_x,
+		    struct run_param *tr)
 {
   assert(tr->nmesh_x != 0);
-  
+
   tr->xmin = -1.0;
   tr->xmax = 1.0;
   tr->delta_x = (tr->xmax - tr->xmin)/tr->nmesh_x;
@@ -72,37 +72,35 @@ void setup_IC_point(double complex *psi,
   // spatial resolution in the phase space
   tr->sigma_x = 4.0*tr->delta_x;
   tr->sigma_v = 0.5*tr->hbar/tr->sigma_x;
-  
+
   // mesh spacing in the velocity space is set to half of the one
   // obtained with the unceartainty principle
   tr->delta_v = tr->sigma_v/4.0;
 
   tr->nmesh_v = (tr->vmax-tr->vmin)/tr->delta_v;
-  
+
 }
 
-// IC with v = A*x and \rho(x) = 
+// IC with v = A*x and \rho(x) =
 void setup_IC_expand(double complex *psi, double expand_coeff, struct run_param *tr)
 {
   assert(tr->nmesh_x != 0);
-  
+
   tr->xmin = -1.0;
   tr->xmax = 1.0;
   tr->delta_x = (tr->xmax - tr->xmin)/tr->nmesh_x;
 
   tr->dtime = tr->rho*SQR(tr->delta_x);
-  
+
   //density profile
   tr->mass = 1.0;
-  double sigma_x = 0.3;
-  double x0 = 0.0;
   double xcut=0.5;
 
   for(int32_t ix=0;ix<tr->nmesh_x;ix++) {
     double x = tr->xmin + ((double)ix+0.5)*tr->delta_x;
 
     double dens = (fabs(x) < xcut) ? 1.0-fabs(x)/xcut : 0.0;
- 
+
     double theta = 0.5*expand_coeff*SQR(x);
     psi[ix] = sqrt(dens)*cexp(_Complex_I*theta/tr->hbar);
   }

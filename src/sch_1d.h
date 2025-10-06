@@ -35,7 +35,10 @@ struct run_param {
   double vmax, vmin;
   double delta_v;
 
+  // total mass
   double mass;
+  // kinetic and potential energies of the system
+  double Kene, Wene;
 
   char model_name[MODEL_NAME_LENGTH];
 
@@ -65,6 +68,7 @@ void output_data(double complex *, double *, double *velc, struct run_param *);
 void output_df(double *, struct run_param *);
 double complex analytic_psi(double, double, double, double, double, double);
 void calc_prob(double complex *, double *, struct run_param *);
+void calc_energy(double *, double *, struct run_param *);
 void calc_velc(double complex *, double *, struct run_param *);
-void calc_pot(double *, struct run_param *);
-void calc_df(double complex *, double *, struct run_param *);
+void calc_pot(double *, double *, struct run_param *);
+void calc_df(double complex *, double *, double *, struct run_param *);

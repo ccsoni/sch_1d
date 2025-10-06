@@ -22,7 +22,7 @@ void init_run(struct run_param *tr, int argc, char **argv)
       exit(EXIT_FAILURE);
     case 'N':
       tr->nmesh_x = atof(optarg);
-      fprintf(stderr, "# nmehs_x = %d\n", tr->nmesh_x);
+      fprintf(stderr, "# nmesh_x = %d\n", tr->nmesh_x);
       break;
     case 'r':
       tr->rho = atof(optarg);

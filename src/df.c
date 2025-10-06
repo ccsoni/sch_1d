@@ -19,8 +19,11 @@ double calc_df_at(double x_, double v_, double complex *psi, struct run_param *t
   return phi_H*conj(phi_H);
 }
 
-void calc_df(double complex *psi, double *DF, struct run_param *tr)
+void calc_df(double complex *psi, double *DF, double *dens,
+	     struct run_param *tr)
 {
+#pragma omp parallel for schedule(auto)
+  for(int32_t ix=0;ix<tr->nmesh_x;ix++) dens[ix] = 0.0;
 
 #pragma omp parallel for schedule(auto) collapse(2)
   for(int32_t ix=0;ix<tr->nmesh_x;ix++) {
@@ -29,31 +32,7 @@ void calc_df(double complex *psi, double *DF, struct run_param *tr)
       double x_ = tr->xmin + ((double)ix+0.5)*tr->delta_x;
       double v_ = tr->vmin + ((double)iv+0.5)*tr->delta_v;
       DF[iv + tr->nmesh_v*ix] = calc_df_at(x_, v_, psi, tr);
+      dens[ix] += DF[iv + tr->nmesh_v*ix]*tr->delta_v;
     }
   }
-}
-
-void output_df(double *df, struct run_param *tr)
-{
-  static char output_filename[MODEL_NAME_LENGTH+10];
-  FILE *fp_DF;
-
-  sprintf(output_filename, "%s_DF_%03d.dat",
-          tr->model_name, tr->output_indx);
-
-  fp_DF = fopen(output_filename, "w");
-
-  fprintf(fp_DF, "%d %d\n", tr->nmesh_x, tr->nmesh_v);
-  fprintf(fp_DF, "%14.6e\n", tr->hbar);
-  fprintf(fp_DF, "%14.6e\n", tr->tnow);
-
-  for(int32_t ix=0;ix<tr->nmesh_x;ix++) {
-    for(int32_t iv=0;iv<tr->nmesh_v;iv++) {
-      double x = tr->xmin + ((double)ix+0.5)*tr->delta_x;
-      double v = tr->vmin + ((double)iv+0.5)*tr->delta_v;
-      fprintf(fp_DF, "%14.6e %14.6e %14.6e\n", x, v, df[iv + tr->nmesh_v*ix]);
-    }
-    fprintf(fp_DF, "\n");
-  }
-  fclose(fp_DF);
 }
