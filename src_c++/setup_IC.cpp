@@ -1,9 +1,9 @@
 #include "sch_1d.h"
 
 complexd coherent_wavefunc(double x, double q, double v, double sigma_x,
-			double hbar)
+			   double hbar)
 {
-  complexd wf = std::polar(1.0, v*x/hbar)*exp(-0.25*SQR((x-q)/sigma_x));
+  complexd wf = std::polar(1.0, v*(x-q)/hbar)*exp(-0.25*SQR((x-q)/sigma_x));
   double C= QUAD_ROOT_2PI*sqrt(sigma_x);
 
   return wf/C;
@@ -38,26 +38,30 @@ void setup_IC_free_particle(complexd *psi, double x_, double v_,
 {
   tr.tnow = 0.0;
   tr.nstep = 0;
-  
+
   tr.xmin =  -1.0;
   tr.xmax =  1.0;
-  
+
   tr.delta_x = (tr.xmax - tr.xmin)/static_cast<double>(tr.nmesh_x);
   tr.dtime = tr.rho*SQR(tr.delta_x);
-
-  // velocity range in the phase space based on the Nyquist wavelength
-  tr.vmin = -M_PI*tr.hbar/tr.delta_x;
-  tr.vmax =  M_PI*tr.hbar/tr.delta_x;
-
-  // mesh spacing in the velocity space is set ot 1/4 of the one
-  // obtained with the unceartainty principle
-  tr.delta_v = 0.25*tr.hbar/tr.delta_x;
-  tr.nmesh_v = (tr.vmax-tr.vmin)/tr.delta_v;
 
   for(int32_t im=0;im<tr.nmesh_x;im++) {
     double x = tr.xmin + (static_cast<double>(im)+0.5)*tr.delta_x;
     psi[im] = coherent_wavefunc(x, x_, v_, sigma_x, tr.hbar);
   }
+
+  // velocity range in the phase space based on the Nyquist wavelength
+  tr.vmin = -M_PI*tr.hbar/tr.delta_x;
+  tr.vmax =  M_PI*tr.hbar/tr.delta_x;
+
+  // spatial resolution in the phase space
+  tr.sigma_x = 4.0*tr.delta_x;
+  tr.sigma_v = 0.5*tr.hbar/tr.sigma_x;
+
+  // mesh spacing in the velocity space is set ot 1/4 of the one
+  // obtained with the unceartainty principle
+  tr.delta_v = tr.sigma_v/4.0;
+  tr.nmesh_v = (tr.vmax-tr.vmin)/tr.delta_v;
 
   assert(fabs(v_) < tr.vmax);
 }
@@ -91,7 +95,22 @@ void setup_IC_expand(complexd *psi, double expand_coeff, run_param & tr)
     }
 
     double theta = 0.5*expand_coeff*SQR(x);
-    complexd arg = complexd(0.0,theta/tr.hbar);
+    complexd arg = complexd(0.0, theta/tr.hbar);
     psi[ix] = sqrt(dens)*exp(arg);
   }
+
+  // velocity range in the phase space based on the Nyquist wavelength
+  tr.vmin = -M_PI*tr.hbar/tr.delta_x;
+  tr.vmax =  M_PI*tr.hbar/tr.delta_x;
+
+  // spatial resolution in the phase space
+  tr.sigma_x = 4.0*tr.delta_x;
+  tr.sigma_v = 0.5*tr.hbar/tr.sigma_x;
+
+  // mesh spacing in the velocity space is set ot 1/4 of the one
+  // obtained with the unceartainty principle
+  tr.delta_v = tr.sigma_v/4.0;
+  tr.nmesh_v = (tr.vmax-tr.vmin)/tr.delta_v;
+
+  assert(fabs(expand_coeff*xcut) < tr.vmax);
 }

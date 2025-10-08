@@ -13,7 +13,7 @@ double calc_df_at(double x_, double v_, complexd *psi, run_param & tr)
 #pragma omp parallel for reduction(+:phi_H)
   for(int32_t ix=0;ix<tr.nmesh_x;ix++) {
     double x_int = tr.xmin + (static_cast<double>(ix)+0.5)*tr.delta_x;
-    complexd W_kernel = coherent_wavefunc(x_int, x_, v_, tr.delta_x, tr.hbar);
+    complexd W_kernel = coherent_wavefunc(x_int, x_, v_, tr.sigma_x, tr.hbar);
 
     phi_H += conj(W_kernel)/kernel_norm*psi[ix]*tr.delta_x;
   }

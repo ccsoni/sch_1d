@@ -11,7 +11,7 @@ double calc_df_at(double x_, double v_, double complex *psi, struct run_param *t
   complex double phi_H = 0.0;
   for(int32_t ix=0;ix<tr->nmesh_x;ix++) {
     double x_int = tr->xmin + ((double)ix+0.5)*tr->delta_x;
-    double complex W_kernel = coherent_wavefunc(x_int, x_, v_, 4.0*tr->delta_x, tr->hbar);
+    double complex W_kernel = coherent_wavefunc(x_int, x_, v_, tr->sigma_x, tr->hbar);
 
     phi_H += conj(W_kernel)/kernel_norm*psi[ix]*tr->delta_x;
   }

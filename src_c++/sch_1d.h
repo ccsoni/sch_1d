@@ -43,16 +43,21 @@ public:
   double rho;  // dt/(dx)^2
   double hbar;
 
+  // phase space resolution where sigma_x*sigma_v = hbar/2
+  double sigma_x, sigma_v;
+
   double xmax, xmin;
   double delta_x;
 
   double vmax, vmin;
   double delta_v;
-  
+
   double mass;
+  double Kene, Wene;
 
   int output_indx;
 
+  int noutput;
   std::vector<double> output_timing;
 
   double next_output_timing()
@@ -73,7 +78,7 @@ public:
   void init_run(int argc, char **argv)
   {
     bool mandatory_options_missed = false;
-    
+
     //parse option
     std::map<std::string, std::string> options;
     for(int i=1;i<argc;i++) {
@@ -117,7 +122,7 @@ public:
       this->nmesh_x = 128;
     }
     printf("# nmesh_x = %d\n", this->nmesh_x);
-      
+
     if(options.count("-d")) {
       this->hbar = std::stof(options["-d"]);
     }else{
@@ -143,14 +148,19 @@ public:
       output_time += this->dt_output;
       output_timing.push_back(output_time);
     }while(output_time + this->dt_output < this->tend);
+    output_timing.push_back(this->tend);
+
     this->output_indx = 0;
 
     // list the output timing
     std::cout << "# output timing" << std::endl;
+    noutput = 0;
     for(double time : output_timing) {
       std::cout << std::scientific << std::setprecision(6) << "# " << time << std::endl;
+      noutput++;
     }
-    
+    printf("# noutput = %d\n", noutput);
+
   }
 };
 

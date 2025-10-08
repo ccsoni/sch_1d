@@ -1,7 +1,7 @@
 #include "sch_1d.h"
 #include <mkl.h>
 
-void evolve_5pnt(complexd *psi, run_param & tr, double dt)
+void evolve_5pnt(complexd *psi, double *pot, run_param & tr, double dt)
 {
   // (I-T)*\Psi^{n+1) = (I+T)*\Psi^n
   // (I+MT)*\Psi^(n+1) = (I-MT)*\Psi^n with MT=-T
@@ -38,7 +38,9 @@ void evolve_5pnt(complexd *psi, run_param & tr, double dt)
     for(int32_t i=0;i<tr.nmesh_x;i++) {
       int32_t diag_indx = i + tr.nmesh_x*i;
 
-      MT[diag_indx] = diag;
+      complexd pot_diag(0.0, 0.5*pot[i]*dt/tr.hbar);
+
+      MT[diag_indx] = diag + pot_diag;
 
       int32_t ip1 = (i+1) % tr.nmesh_x;
       int32_t im1 = (i-1+tr.nmesh_x) % tr.nmesh_x;
@@ -53,7 +55,10 @@ void evolve_5pnt(complexd *psi, run_param & tr, double dt)
 #else // !__PERIODIC__
     // diagonal component
 #pragma omp parallel for schedule(auto)
-    for(int32_t i=0;i<tr.nmesh_x;i++) MT[i + tr.nmesh_x*i] = diag;
+    for(int32_t i=0;i<tr.nmesh_x;i++) {
+      complexd pot_diag(0.0, 0.5*pot[i]*dt/tr.hbar);
+      MT[i + tr.nmesh_x*i] = diag + pot_diag;
+    }
 
     // first off-diagonal component
 #pragma omp parallel for schedule(auto)

@@ -1,11 +1,11 @@
 #include "sch_1d.h"
 
-void calc_dens(complexd *psi, double *dens, run_param & tr)
+void calc_prob(complexd *psi, double *prob, run_param & tr)
 {
   tr.mass = 0.0;
   for(int32_t im=0;im<tr.nmesh_x;im++) {
-    dens[im] = std::norm(psi[im]);
-    tr.mass += dens[im]*tr.delta_x;
+    prob[im] = std::norm(psi[im]);
+    tr.mass += prob[im]*tr.delta_x;
   }
 }
 

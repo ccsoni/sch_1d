@@ -28,7 +28,7 @@ int main(int argc, char **argv)
   calc_prob(psi, prob, &this_run);
   calc_velc(psi, velc, &this_run);
 
-  calc_pot(pot, &this_run);
+  calc_pot(pot, dens, &this_run);
   calc_energy(df, pot, &this_run);
 
   printf("# dt = %12.4e\n", this_run.dtime);
