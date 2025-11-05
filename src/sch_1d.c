@@ -16,10 +16,10 @@ int main(int argc, char **argv)
   pot = (double *)malloc(sizeof(double)*this_run.nmesh_x);
 
   double x_bar = 0.0;
-  double v_bar = 1.0;
+  double v_bar = 2.0;
   double sigma_x = 0.05;
 
-  setup_IC_point(psi, x_bar, v_bar, sigma_x, &this_run);
+  setup_IC_coherent_particle(psi, x_bar, v_bar, sigma_x, &this_run);
   //  setup_IC_expand(psi, v_bar, &this_run);
 
   df = (double *) malloc(sizeof(double)*this_run.nmesh_x*this_run.nmesh_v);
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
     if(this_run.tnow > this_run.output_timing[this_run.output_indx]) {
       calc_df(psi, df, dens, &this_run);
       calc_energy(df, pot, &this_run);
-      output_data(psi, prob, velc, &this_run);
+      output_data(psi, dens, velc, &this_run);
       output_df(df, &this_run);
       this_run.output_indx++;
     }

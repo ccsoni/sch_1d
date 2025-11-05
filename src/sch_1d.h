@@ -50,14 +50,14 @@ struct run_param {
 #define CUBE(x) ((x)*(x)*(x))
 #define QUAD(x) ((x)*(x)*(x)*(x))
 
-// square root of 2*M_PI
-#define ROOT_2PI (1.772453851)
+// square root of M_PI
+#define ROOT_PI (1.772453851)
 // 4-th root of 2*M_PI
 #define QUAD_ROOT_2PI (1.583233487)
 
 void init_run(struct run_param *, int, char**);
 double complex coherent_wavefunc(double, double, double, double, double);
-void setup_IC_point(double complex *, double, double, double, struct run_param *);
+void setup_IC_coherent_particle(double complex *, double, double, double, struct run_param *);
 void setup_IC_expand(double complex *, double, struct run_param *);
 void evolve_3pnt_free(double complex *, struct run_param*, double);
 void evolve_5pnt_free(double complex *, struct run_param*, double);
@@ -68,6 +68,7 @@ void output_data(double complex *, double *, double *velc, struct run_param *);
 void output_df(double *, struct run_param *);
 double complex analytic_psi(double, double, double, double, double, double);
 void calc_prob(double complex *, double *, struct run_param *);
+void calc_dens(double complex *, double *, struct run_param *);
 void calc_energy(double *, double *, struct run_param *);
 void calc_velc(double complex *, double *, struct run_param *);
 void calc_pot(double *, double *, struct run_param *);

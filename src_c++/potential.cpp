@@ -27,10 +27,37 @@ void calc_energy(double *DF, double *pot, run_param & tr)
 
 void calc_pot(double *pot, double *dens, run_param & tr)
 {
+
+#ifdef __SELF_GRAV__
+#pragma omp parallel for schedule(auto)
+  for(int32_t im=0;im<tr.nmesh_x;im++) {
+    pot[im] = 0.0;
+    double xi = tr.xmin + (static_cast<double>(im)+0.5)*tr.delta_x;
+    for(int32_t jm=0;jm<im;jm++) {
+      double xj = tr.xmin + (static_cast<double>(jm)+0.5)*tr.delta_x;
+      pot[im] += 2.0*M_PI*(xi-xj)*dens[jm]*tr.delta_x;
+    }
+    for(int32_t jm=im;jm<tr.nmesh_x;jm++) {
+      double xj = tr.xmin + (static_cast<double>(jm)+0.5)*tr.delta_x;
+      pot[im] -= 2.0*M_PI*(xi-xj)*dens[jm]*tr.delta_x;
+    }
+  }
+#elif defined __GRAV__
+  // gravitational potential of Gaussian mass distribution of mass M_center centered at x=0
+  double M_center = 1.0;
+  double sigma = tr.sigma_x;
+  for(int32_t ix=0;ix<tr.nmesh_x;ix++) {
+    double x = tr.xmin + (static_cast<double>(ix)+0.5)*tr.delta_x;
+    //    pot[ix] = 2.0*M_PI*M_center*fabs(x);
+    pot[ix] = 2.0*M_PI*M_center*(x*erf(x/sqrt(2.0*SQR(sigma))) + sqrt(2.0/M_PI)*sigma*exp(-0.5*SQR(x/sigma)));
+  }
+#elif defined __HARMONIC__
   double omega = 2.0;;
   for(int32_t ix=0;ix<tr.nmesh_x;ix++) {
     double x = tr.xmin + (static_cast<double>(ix)+0.5)*tr.delta_x;
     pot[ix] = 0.5*SQR(omega*x);
-    //    pot[ix] = 0.0;
   }
+#else
+  for(int32_t ix=0;ix<tr.nmesh_x;ix++) pot[ix] = 0.0;
+#endif
 }

@@ -33,8 +33,8 @@ complexd analytic_psi(double x, double t,
   return wf;
 }
 
-void setup_IC_free_particle(complexd *psi, double x_, double v_,
-			    double sigma_x, run_param & tr)
+void setup_IC_coherent_particle(complexd *psi, double x_, double v_,
+				double sigma_x, run_param & tr)
 {
   tr.tnow = 0.0;
   tr.nstep = 0;
@@ -113,4 +113,91 @@ void setup_IC_expand(complexd *psi, double expand_coeff, run_param & tr)
   tr.nmesh_v = (tr.vmax-tr.vmin)/tr.delta_v;
 
   assert(fabs(expand_coeff*xcut) < tr.vmax);
+}
+
+// IC with v = v_
+void setup_IC_constvel(complexd *psi, double v_, run_param & tr)
+{
+  assert(tr.nmesh_x != 0);
+
+  tr.nstep = 0;
+
+  tr.xmin = -1.0;
+  tr.xmax =  1.0;
+  tr.delta_x = (tr.xmax - tr.xmin)/tr.nmesh_x;
+
+  tr.dtime = tr.rho*SQR(tr.delta_x);
+
+  // density profile
+  // rho(x) = rho_0*(1-|x|/xcut)
+  tr.mass = 1.0;
+  double xcut = 0.5;  // cut off distance beyond which the density is zero.
+  double dens_0 = 1.0/(2.0*xcut);
+
+  for(int32_t ix=0;ix<tr.nmesh_x;ix++) {
+    double x = tr.xmin + (static_cast<double>(ix)+0.5)*tr.delta_x;
+    double dens;
+    if(fabs(x) < xcut) {
+      dens = dens_0*(1.0-fabs(x)/xcut);
+    }else{
+      dens = 0.0;
+    }
+
+    double theta = v_*x;
+    complexd arg = complexd(0.0, theta/tr.hbar);
+    psi[ix] = sqrt(dens)*exp(arg);
+  }
+
+  // velocity range in the phase space based on the Nyquist wavelength
+  tr.vmin = -M_PI*tr.hbar/tr.delta_x;
+  tr.vmax =  M_PI*tr.hbar/tr.delta_x;
+
+  // spatial resolution in the phase space
+  tr.sigma_x = 4.0*tr.delta_x;
+  tr.sigma_v = 0.5*tr.hbar/tr.sigma_x;
+
+  // mesh spacing in the velocity space is set ot 1/4 of the one
+  // obtained with the unceartainty principle
+  tr.delta_v = tr.sigma_v/4.0;
+  tr.nmesh_v = (tr.vmax-tr.vmin)/tr.delta_v;
+
+  assert(fabs(v_) < tr.vmax);
+}
+
+
+void setup_IC_two_stream(complexd *psi, run_param & tr)
+{
+  assert(tr.nmesh_x != 0);
+
+  tr.nstep = 0;
+
+  tr.xmin = -1.0;
+  tr.xmax =  1.0;
+  tr.delta_x = (tr.xmax - tr.xmin)/tr.nmesh_x;
+
+  tr.dtime = tr.rho*SQR(tr.delta_x);
+
+  double x_, v_;
+  double sigma_x;
+
+  // the first stream
+  x_ = -0.5;
+  v_ = 1.0;
+  sigma_x = 0.05;
+  for(int32_t im=0;im<tr.nmesh_x;im++) {
+    double x = tr.xmin + (static_cast<double>(im)+0.5)*tr.delta_x;
+    psi[im] = coherent_wavefunc(x, x_, v_, sigma_x, tr.hbar);
+  }
+
+  // the second stream
+  x_ = 0.5;
+  v_ = -1.0;
+  sigma_x = 0.05;
+  for(int32_t im=0;im<tr.nmesh_x;im++) {
+    double x = tr.xmin + (static_cast<double>(im)+0.5)*tr.delta_x;
+    complexd psi_ = coherent_wavefunc(x, x_, v_, sigma_x, tr.hbar);
+    double phi_arg = HALF_M_PI - std::arg(conj(psi[im])*psi_);
+    psi[im] += psi_*std::polar(1.0, phi_arg);
+  }
+
 }

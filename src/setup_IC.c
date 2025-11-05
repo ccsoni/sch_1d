@@ -35,9 +35,9 @@ double complex analytic_psi(double x, double t,
 
 
 // initial condition for point mass like particles
-void setup_IC_point(double complex *psi,
-		    double x_bar, double v_bar, double sigma_x,
-		    struct run_param *tr)
+void setup_IC_coherent_particle(double complex *psi,
+				double x_bar, double v_bar, double sigma_x,
+				struct run_param *tr)
 {
   assert(tr->nmesh_x != 0);
 

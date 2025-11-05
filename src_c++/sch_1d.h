@@ -166,6 +166,7 @@ public:
 
 constexpr double ROOT_2PI=1.772453851;
 constexpr double QUAD_ROOT_2PI=1.583233487;
+constexpr double HALF_M_PI=(M_PI*0.5);
 
 constexpr int32_t MODEL_NAME_LENGTH=128;
 

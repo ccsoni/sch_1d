@@ -20,8 +20,9 @@ int main(int argc, char **argv)
   double v_ = 1.0;
   double sigma_x_ = 0.05;
 
-  setup_IC_free_particle(psi_1d, x_, v_, sigma_x_, this_run);
-  //  setup_IC_expand(psi_1d, v_, this_run);
+  //  setup_IC_coherent_particle(psi_1d, x_, v_, sigma_x_, this_run);
+  setup_IC_expand(psi_1d, v_, this_run);
+  //  setup_IC_constvel(psi_1d, v_, this_run);
 
   DF = static_cast<double*>(std::aligned_alloc(64, sizeof(double)*this_run.nmesh_x*this_run.nmesh_v));
 
