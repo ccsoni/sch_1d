@@ -127,9 +127,7 @@ if __name__ == "__main__":
         xc_hi = xc + 0.5*sigma_x
         vc_lo = vc - 0.5*sigma_v
         vc_hi = vc + 0.5*sigma_v
-        print(xc_lo, xc_hi)
-        print(vc_lo, vc_hi)
-
+        # draw the cross bar presenting (sigma_x, sigma_v)
         ax.plot([xc_lo, xc_hi], [vc, vc], color='white', lw=1.5)
         ax.plot([xc, xc], [vc_lo, vc_hi], color='white', lw=1.5)
 
