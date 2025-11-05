@@ -64,6 +64,7 @@ void output_df(double *df, struct run_param *tr)
   fp_DF = fopen(output_filename, "w");
 
   fprintf(fp_DF, "%d %d\n", tr->nmesh_x, tr->nmesh_v);
+  fprintf(fp_DF, "%14.6e %14.6e\n",tr->sigma_x, tr->sigma_v);
   fprintf(fp_DF, "%14.6e\n", tr->hbar);
   fprintf(fp_DF, "%14.6e\n", tr->tnow);
 
