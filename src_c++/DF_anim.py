@@ -5,6 +5,8 @@ import glob
 import os
 import re
 import sys
+import matplotlib
+matplotlib.use("Agg")
 
 column = 1
 
@@ -22,7 +24,8 @@ def extract_index(filename):
     return int(match.group(1)) if match else -1
 
 def update(frame):
-    nmesh_x, nmesh_v, hbar, tnow = read_header(file_list[frame])
+    #nmesh_x, nmesh_v, hbar, tnow = read_header(file_list[frame])
+    nmesh_x, nmesh_v, sigama_x, sigma_v, hbar, tnow = read_header(file_list[frame])
     data = np.loadtxt(file_list[frame],skiprows=4)
     Z = data[:, 2].reshape(len(xmesh), len(ymesh))
     mesh.set_array(Z.ravel())  # pcolormesh ÌFXV
@@ -52,7 +55,8 @@ if __name__ == "__main__":
     ax.grid(axis='y',which='major', color='#e9e9e9')
 
     # read the first data
-    nmesh_x, nmesh_v, hbar, tnow = read_header(file_list[0])
+    #nmesh_x, nmesh_v, hbar, tnow = read_header(file_list[0])
+    nmesh_x, nmesh_v, sigama_x, sigma_v, hbar, tnow = read_header(file_list[0])
     data0 = np.loadtxt(file_list[0], skiprows=4)
     x = data0[:,0]
     y = data0[:,1]
@@ -88,7 +92,8 @@ if __name__ == "__main__":
     plt.close(fig)
 
     for i, filename in enumerate(file_list):
-        nmesh_x, nmesh_v, hbar, tnow = read_header(filename)
+        #nmesh_x, nmesh_v, hbar, tnow = read_header(filename)
+        nmesh_x, nmesh_v, sigma_x, sigma_v, hbar, tnow = read_header(filename)
         data = np.loadtxt(file_list[i],skiprows=4)
         x = data[:,0]
         y = data[:,1]

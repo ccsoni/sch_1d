@@ -47,8 +47,63 @@ void calc_dens(complexd *psi, double *dens, run_param & tr)
 
 }
 
+void calc_velc(complexd *psi, double *dens, double *velc, run_param & tr)
+{
+  static bool first_call = true;
+  static fftw_plan forward, backward;
+  static fftw_complex *j_hat;
+  static double *j_tmp;
 
-void calc_velc(complexd *psi, double *velc, run_param  & tr)
+  if(first_call) {
+    j_tmp = static_cast<double*>(std::aligned_alloc(64, sizeof(double) * tr.nmesh_x));
+    j_hat = 
+      static_cast<fftw_complex*>(std::aligned_alloc(64, sizeof(fftw_complex) * (tr.nmesh_x/2 + 1)));
+
+    forward  = fftw_plan_dft_r2c_1d(tr.nmesh_x, j_tmp, j_hat, FFTW_ESTIMATE);
+    backward = fftw_plan_dft_c2r_1d(tr.nmesh_x, j_hat, j_tmp, FFTW_ESTIMATE);
+    first_call = false;
+  }
+
+
+#pragma omp parallel for schedule(auto)
+  for(int32_t ix=0; ix<tr.nmesh_x; ix++) {
+    int32_t ixp1 = (ix + 1) % tr.nmesh_x;
+    int32_t ixm1 = (ix - 1 + tr.nmesh_x) % tr.nmesh_x;
+    int32_t ixp2 = (ix + 2) % tr.nmesh_x;
+    int32_t ixm2 = (ix - 2 + tr.nmesh_x) % tr.nmesh_x;
+
+#ifdef __SECOND_ORDER__
+    complexd d_psi = (psi[ixp1] - psi[ixm1]) / (2.0 * tr.delta_x);
+#else
+    complexd d_psi = (8.0 * (psi[ixp1] - psi[ixm1]) - (psi[ixp2] - psi[ixm2])) / (12.0 * tr.delta_x);
+#endif
+    // j = hbar * Im(psi* . grad(psi))
+    j_tmp[ix] = tr.hbar * std::imag(std::conj(psi[ix]) * d_psi);
+  }
+
+  fftw_execute(forward);
+
+  // Gaussian fileter in k-space
+#pragma omp parallel for schedule(auto)
+  for(int32_t ik=0; ik < tr.nmesh_x/2 + 1; ik++) {
+    double kx = 2.0 * M_PI * static_cast<double>(ik) / (static_cast<double>(tr.nmesh_x) * tr.delta_x);
+    double wk = std::exp(-0.5 * SQR(tr.sigma_x * kx)); 
+    j_hat[ik][0] *= wk;
+    j_hat[ik][1] *= wk;
+  }
+
+  fftw_execute(backward);
+
+  const double eps = 1e-20;
+#pragma omp parallel for schedule(auto)
+  for(int32_t ix=0; ix<tr.nmesh_x; ix++) {
+    double smoothed_j = j_tmp[ix] / tr.nmesh_x;
+    velc[ix] = smoothed_j / (dens[ix] + eps);
+  }
+}
+
+
+void calc_velc_old(complexd *psi, double *velc, run_param  & tr)
 {
 
 #pragma omp parallel for schedule(auto)
@@ -69,3 +124,4 @@ void calc_velc(complexd *psi, double *velc, run_param  & tr)
     velc[ix] = tr.hbar*imag(d_psi*conj(psi[ix]))/dens;
   }
 }
+

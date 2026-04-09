@@ -45,7 +45,7 @@ void calc_pot(double *pot, double *dens, run_param & tr)
 #elif defined __GRAV__
   // gravitational potential of Gaussian mass distribution of mass M_center centered at x=0
   double M_center = 1.0;
-  double sigma = tr.sigma_x;
+  double sigma = 0.2;
   for(int32_t ix=0;ix<tr.nmesh_x;ix++) {
     double x = tr.xmin + (static_cast<double>(ix)+0.5)*tr.delta_x;
     //    pot[ix] = 2.0*M_PI*M_center*fabs(x);

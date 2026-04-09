@@ -1,11 +1,19 @@
 #CXX=icpx
 CXX=g++
-CXXFLAGS=-O3 -ffast-math
+CXXFLAGS=-O3 -ffast-math -g
+
+###OPENMP_FLAG = -fopenmp
+###CXXFLAGS=-O3 -ffast-math $(OPENMP_FLAG)
 
 #CXXFLAGS += -D__PERIODIC__
-CXXFLAGS += -D__GRAV__
 
-OPENMP_FLAG = -fopenmp
+#### Potential type options ####
+# Choose only one. In case of multiple definitions, 
+# the priority order is: SELF_GRAV > GRAV > HARMONIC
+#CXXFLAGS += -D__SELF_GRAV__
+CXXFLAGS += -D__GRAV__
+#CXXFLAGS += -D__HARMONIC__
+
 
 SCH_1D_OBJ = main.o setup_IC.o moment.o evolve.o io.o df.o potential.o
 SCH_1D_DEP := $(SCH_1D_OBJ)

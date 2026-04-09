@@ -1,4 +1,7 @@
 #include "sch_1d.h"
+#include <cmath>
+#include <algorithm>
+#include <fstream>
 
 complexd coherent_wavefunc(double x, double q, double v, double sigma_x,
 			   double hbar)
@@ -200,4 +203,42 @@ void setup_IC_two_stream(complexd *psi, run_param & tr)
     psi[im] += psi_*std::polar(1.0, phi_arg);
   }
 
+}
+
+
+void setup_IC_gravity_test(complexd *psi, run_param & tr, double expand_coeff, double M = 1.0, double sigma_p = 0.2)
+{
+  assert(tr.nmesh_x != 0);
+
+  tr.xmin = -1.0;
+  tr.xmax =  1.0;
+  tr.delta_x = (tr.xmax - tr.xmin) / tr.nmesh_x;
+  tr.dtime = tr.rho*SQR(tr.delta_x);
+  
+  // Normalization constant for Gaussian distribution
+  const double inv_sqrt_2pi_sigma = 1.0 / (std::sqrt(2.0 * M_PI) * sigma_p);
+
+  for (int32_t ix = 0; ix < tr.nmesh_x; ix++) {
+    double x = tr.xmin + (static_cast<double>(ix) + 0.5) * tr.delta_x;
+    double dens = M * inv_sqrt_2pi_sigma * std::exp(-SQR(x) / (2.0 * SQR(sigma_p)));
+    double phase = (0.5 * expand_coeff * SQR(x)) / tr.hbar;
+    complexd exp_phase = std::exp(complexd(0.0, phase));
+    psi[ix] = std::sqrt(dens) * exp_phase;
+  }
+  tr.sigma_x = 4.0*tr.delta_x;
+  tr.sigma_v = 0.5*tr.hbar/tr.sigma_x;
+  tr.mass = M;
+
+  // velocity range in the phase space based on the Nyquist wavelength
+  tr.vmin = -M_PI*tr.hbar/tr.delta_x;
+  tr.vmax =  M_PI*tr.hbar/tr.delta_x;
+
+  // mesh spacing in the velocity space is set ot 1/4 of the one
+  // obtained with the unceartainty principle
+  tr.delta_v = tr.sigma_v/4.0;
+  tr.delta_v *= 0.5;
+  tr.nmesh_v = (tr.vmax-tr.vmin)/tr.delta_v;
+
+  std::cout << "# sigma_x: " << tr.sigma_x << std::endl;
+  std::cout << "# sigma_v: " << tr.sigma_v << std::endl;
 }

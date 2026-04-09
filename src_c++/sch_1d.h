@@ -156,7 +156,8 @@ public:
     std::cout << "# output timing" << std::endl;
     noutput = 0;
     for(double time : output_timing) {
-      std::cout << std::scientific << std::setprecision(6) << "# " << time << std::endl;
+      // soga
+      //std::cout << std::scientific << std::setprecision(6) << "# " << time << std::endl;
       noutput++;
     }
     printf("# noutput = %d\n", noutput);

@@ -6,6 +6,8 @@ import os
 import re
 import sys
 from scipy.optimize import curve_fit
+import matplotlib
+matplotlib.use("Agg")
 
 time_arr = []
 peak_pos = []
@@ -17,7 +19,8 @@ def s(t, hbar, sigma_x):
     return 1.0+0.25*(hbar*t/(sigma_x*sigma_x))**2
 
 def psi_real_imag(x, t, x0, v0, hbar, sigma_x):
-    const = np.pow(2.0*np.pi*sigma_x**2, -0.25)
+    #const = np.pow(2.0*np.pi*sigma_x**2, -0.25)
+    const = (2.0*np.pi*sigma_x**2)**(-0.25)
     fact = np.sqrt(1.0+0.5j*hbar*t/(sigma_x*sigma_x))
     sigma_t2 = sigma_x*sigma_x*s(t, hbar, sigma_x)
     exponent_real = -0.25*(x-x0-v0*t)**2/sigma_t2
