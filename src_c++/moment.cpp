@@ -35,7 +35,8 @@ void calc_dens(complexd *psi, double *dens, run_param & tr)
 #pragma omp parallel for schedule(auto)
   for(int32_t ik=0;ik<tr.nmesh_x/2;ik++) {
     double kx = 2.0*M_PI*static_cast<double>(ik)/static_cast<double>(tr.nmesh_x);
-    double wk = std::exp(-0.5*SQR(tr.sigma_x/tr.delta_x*kx));
+    //double wk = std::exp(-0.5*SQR(tr.sigma_x/tr.delta_x*kx));
+    double wk = std::exp(-0.5*SQR(tr.sigma_x_array[ik]/tr.delta_x*kx));
     dens_hat[ik][0] *= wk;
     dens_hat[ik][1] *= wk;
   }
@@ -87,7 +88,8 @@ void calc_velc(complexd *psi, double *dens, double *velc, run_param & tr)
 #pragma omp parallel for schedule(auto)
   for(int32_t ik=0; ik < tr.nmesh_x/2 + 1; ik++) {
     double kx = 2.0 * M_PI * static_cast<double>(ik) / (static_cast<double>(tr.nmesh_x) * tr.delta_x);
-    double wk = std::exp(-0.5 * SQR(tr.sigma_x * kx)); 
+    //double wk = std::exp(-0.5 * SQR(tr.sigma_x * kx)); 
+    double wk = std::exp(-0.5 * SQR(tr.sigma_x_array[ik] * kx)); 
     j_hat[ik][0] *= wk;
     j_hat[ik][1] *= wk;
   }

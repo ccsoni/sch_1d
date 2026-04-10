@@ -32,9 +32,8 @@ int main(int argc, char **argv)
   calc_prob(psi_1d, dens, this_run);
   calc_dens(psi_1d, dens, this_run);
   calc_velc(psi_1d, dens, velc, this_run);
-  calc_DF(DF, psi_1d, this_run);
-
   calc_pot(pot, dens, this_run);
+  calc_DF(DF, psi_1d, this_run);
 
   printf("# dt = %12.4e\n", this_run.dtime);
   printf("# nstep   tnow         mass         K            W            E\n");

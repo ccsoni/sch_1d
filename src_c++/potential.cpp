@@ -1,4 +1,5 @@
 #include "sch_1d.h"
+#include <fstream>
 
 void calc_energy(double *DF, double *pot, run_param & tr)
 {
@@ -41,6 +42,9 @@ void calc_pot(double *pot, double *dens, run_param & tr)
       double xj = tr.xmin + (static_cast<double>(jm)+0.5)*tr.delta_x;
       pot[im] -= 2.0*M_PI*(xi-xj)*dens[jm]*tr.delta_x;
     }
+
+    tr.sigma_x_array[im] = tr.sigma_x;
+    tr.sigma_v_array[im] = tr.sigma_v;
   }
 #elif defined __GRAV__
   // gravitational potential of Gaussian mass distribution of mass M_center centered at x=0
@@ -50,14 +54,30 @@ void calc_pot(double *pot, double *dens, run_param & tr)
     double x = tr.xmin + (static_cast<double>(ix)+0.5)*tr.delta_x;
     //    pot[ix] = 2.0*M_PI*M_center*fabs(x);
     pot[ix] = 2.0*M_PI*M_center*(x*erf(x/sqrt(2.0*SQR(sigma))) + sqrt(2.0/M_PI)*sigma*exp(-0.5*SQR(x/sigma)));
+
+    // soga
+    // calc sigma_x and sigma_v
+    double rho_x = M_center / sqrt( 2.0*M_PI*SQR(sigma) ) * exp( -0.5*SQR(x/sigma) );
+    double sx = sqrt(tr.hbar) / sqrt( sqrt(8.0*M_PI*rho_x) );
+    double sv = 0.5 * tr.hbar / sx;
+    tr.sigma_x_array[ix] = std::min( sx, 8.0*tr.delta_x );
+    tr.sigma_v_array[ix] = std::max( sv, 6.25e-2*tr.hbar/tr.delta_x );
+
   }
 #elif defined __HARMONIC__
   double omega = 2.0;;
   for(int32_t ix=0;ix<tr.nmesh_x;ix++) {
     double x = tr.xmin + (static_cast<double>(ix)+0.5)*tr.delta_x;
     pot[ix] = 0.5*SQR(omega*x);
+
+    tr.sigma_x_array[im] = omega;
+    tr.sigma_v_array[im] = 0.5 * tr.hbar / omega;
   }
 #else
-  for(int32_t ix=0;ix<tr.nmesh_x;ix++) pot[ix] = 0.0;
+  for(int32_t ix=0;ix<tr.nmesh_x;ix++) {
+    pot[ix] = 0.0;
+    tr.sigma_x_array[im] = tr.sigma_x;
+    tr.sigma_v_array[im] = tr.sigma_v;
+  }
 #endif
 }

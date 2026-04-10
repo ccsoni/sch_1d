@@ -241,4 +241,5 @@ void setup_IC_gravity_test(complexd *psi, run_param & tr, double expand_coeff, d
 
   std::cout << "# sigma_x: " << tr.sigma_x << std::endl;
   std::cout << "# sigma_v: " << tr.sigma_v << std::endl;
+  std::cout << "# nmesh_v: " << tr.nmesh_v << std::endl;
 }

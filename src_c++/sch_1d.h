@@ -45,6 +45,7 @@ public:
 
   // phase space resolution where sigma_x*sigma_v = hbar/2
   double sigma_x, sigma_v;
+  double *sigma_x_array, *sigma_v_array;
 
   double xmax, xmin;
   double delta_x;
@@ -141,6 +142,11 @@ public:
       print_help();
       exit(EXIT_FAILURE);
     }
+
+    sigma_x_array  = static_cast<double*>
+      (std::aligned_alloc(64, sizeof(double)*nmesh_x));
+    sigma_v_array  = static_cast<double*>
+      (std::aligned_alloc(64, sizeof(double)*nmesh_x));
 
     // setting up the output timing
     double output_time = 0.0;
