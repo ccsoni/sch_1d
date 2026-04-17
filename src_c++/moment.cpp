@@ -1,14 +1,19 @@
 #include "sch_1d.h"
 #include <fftw3.h>
+#include <fstream>
+
+#define EPSILON 1e-12
 
 void calc_prob(complexd *psi, double *prob, run_param & tr)
 {
+  double total_mass = 0.0;
   tr.mass = 0.0;
-#pragma omp parallel for schedule(auto) reduction(+:tr.mass)
+#pragma omp parallel for schedule(auto) reduction(+:total_mass)
   for(int32_t im=0;im<tr.nmesh_x;im++) {
     prob[im] = std::norm(psi[im]);
-    tr.mass += prob[im]*tr.delta_x;
+    total_mass += prob[im]*tr.delta_x;
   }
+  tr.mass = total_mass;
 }
 
 void calc_dens(complexd *psi, double *dens, run_param & tr)
@@ -44,7 +49,10 @@ void calc_dens(complexd *psi, double *dens, run_param & tr)
   fftw_execute(backward);
 
 #pragma omp parallel for schedule(auto)
-  for(int32_t ix=0;ix<tr.nmesh_x;ix++) dens[ix] /= tr.nmesh_x;
+  for(int32_t ix=0;ix<tr.nmesh_x;ix++) { 
+    dens[ix] /= tr.nmesh_x;
+    if ( dens[ix] < EPSILON ) dens[ix] = 0.0;
+  }
 
 }
 
@@ -86,7 +94,7 @@ void calc_velc(complexd *psi, double *dens, double *velc, run_param & tr)
 
   // Gaussian fileter in k-space
 #pragma omp parallel for schedule(auto)
-  for(int32_t ik=0; ik < tr.nmesh_x/2 + 1; ik++) {
+  for(int32_t ik=0; ik < tr.nmesh_x/2; ik++) {
     double kx = 2.0 * M_PI * static_cast<double>(ik) / (static_cast<double>(tr.nmesh_x) * tr.delta_x);
     //double wk = std::exp(-0.5 * SQR(tr.sigma_x * kx)); 
     double wk = std::exp(-0.5 * SQR(tr.sigma_x_array[ik] * kx)); 
@@ -100,7 +108,12 @@ void calc_velc(complexd *psi, double *dens, double *velc, run_param & tr)
 #pragma omp parallel for schedule(auto)
   for(int32_t ix=0; ix<tr.nmesh_x; ix++) {
     double smoothed_j = j_tmp[ix] / tr.nmesh_x;
-    velc[ix] = smoothed_j / (dens[ix] + eps);
+    if ( dens[ix] >= EPSILON ) {
+      //velc[ix] = smoothed_j / dens[ix];
+      velc[ix] = smoothed_j;
+    } else {
+      velc[ix] = 0.0;
+    }
   }
 }
 

@@ -70,14 +70,15 @@ void calc_pot(double *pot, double *dens, run_param & tr)
     double x = tr.xmin + (static_cast<double>(ix)+0.5)*tr.delta_x;
     pot[ix] = 0.5*SQR(omega*x);
 
-    tr.sigma_x_array[im] = omega;
-    tr.sigma_v_array[im] = 0.5 * tr.hbar / omega;
+    //tr.sigma_x_array[ix] = sqrt(tr.hbar) / sqrt( sqrt(2.0*omega) );
+    //tr.sigma_v_array[ix] = 0.5 * tr.hbar / omega;
+    tr.sigma_x_array[ix] = tr.sigma_x;
+    tr.sigma_v_array[ix] = tr.sigma_v;
+
   }
 #else
   for(int32_t ix=0;ix<tr.nmesh_x;ix++) {
     pot[ix] = 0.0;
-    tr.sigma_x_array[im] = tr.sigma_x;
-    tr.sigma_v_array[im] = tr.sigma_v;
   }
 #endif
 }

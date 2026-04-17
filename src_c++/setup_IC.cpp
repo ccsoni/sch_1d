@@ -66,6 +66,11 @@ void setup_IC_coherent_particle(complexd *psi, double x_, double v_,
   tr.delta_v = tr.sigma_v/4.0;
   tr.nmesh_v = (tr.vmax-tr.vmin)/tr.delta_v;
 
+  std::cout << "# sigma_x " << tr.sigma_x << std::endl;
+  std::cout << "# sigma_v " << tr.sigma_v << std::endl;
+  std::cout << "# nmesh_x " << tr.nmesh_x << std::endl;
+  std::cout << "# nmesh_v " << tr.nmesh_v << std::endl;
+
   assert(fabs(v_) < tr.vmax);
 }
 

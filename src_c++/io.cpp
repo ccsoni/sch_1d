@@ -23,7 +23,7 @@ void make_directory(const char *directory_name)
   mkdir(cwd_path, mode);
 }
 
-void output_data(complexd *psi, double *dens, double *velc, run_param & tr)
+void output_data(complexd *psi, double *dens, double *velc, double *dens_df, double *velc_df, run_param & tr)
 {
   make_directory(tr.model_name.c_str());
 
@@ -44,9 +44,11 @@ void output_data(complexd *psi, double *dens, double *velc, run_param & tr)
     complexd analytic = analytic_psi(x, tr.tnow,
 				     0.0, 2.0*M_PI, 0.05, tr.hbar);
 
-    fprintf(fp, "%14.6e %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e\n",
+    fprintf(fp, "%14.6e %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e\n",
 	    x, dens[ix], velc[ix], psi[ix].real(), psi[ix].imag(),
-	    analytic.real(), analytic.imag(), std::norm(analytic));
+	    analytic.real(), analytic.imag(), std::norm(analytic), 
+      dens_df[ix], velc_df[ix]
+    );
   }
   fflush(fp);
 

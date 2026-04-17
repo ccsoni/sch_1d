@@ -9,6 +9,7 @@ int main(int argc, char **argv)
 
   complexd *psi_1d;
   double *prob, *dens, *velc, *DF, *pot;
+  double *dens_df, *velc_df;
 
   this_run.init_run(argc, argv);
 
@@ -17,15 +18,19 @@ int main(int argc, char **argv)
   dens = static_cast<double*>(std::aligned_alloc(64, sizeof(double)*this_run.nmesh_x));
   velc = static_cast<double*>(std::aligned_alloc(64, sizeof(double)*this_run.nmesh_x));
   pot  = static_cast<double*>(std::aligned_alloc(64, sizeof(double)*this_run.nmesh_x));
+  // soga
+  dens_df = static_cast<double*>(std::aligned_alloc(64, sizeof(double)*this_run.nmesh_x));
+  velc_df = static_cast<double*>(std::aligned_alloc(64, sizeof(double)*this_run.nmesh_x));
 
   double x_ = 0.0;
   double v_ = 1.0;
   double sigma_x_ = 0.05;
 
-  //  setup_IC_coherent_particle(psi_1d, x_, v_, sigma_x_, this_run);
+  setup_IC_coherent_particle(psi_1d, x_, v_, sigma_x_, this_run);
   //setup_IC_expand(psi_1d, v_, this_run);
   //setup_IC_constvel(psi_1d, v_, this_run);
-  setup_IC_gravity_test(psi_1d, this_run, 2.0, 1.0, 0.2);
+  //setup_IC_gravity_test(psi_1d, this_run, 2.0, 1.0, 0.2);
+  //setup_IC_gravity_test(psi_1d, this_run, 0.0, 1.0, 0.2);
 
   DF = static_cast<double*>(std::aligned_alloc(64, sizeof(double)*this_run.nmesh_x*this_run.nmesh_v));
 
@@ -63,7 +68,10 @@ int main(int argc, char **argv)
     if(this_run.tnow > this_run.next_output_timing()) {
       calc_DF(DF, psi_1d, this_run);
 
-      output_data(psi_1d, dens, velc, this_run);
+      calc_density_from_df(dens_df, DF, this_run);
+      calc_velocity_from_df(velc_df, dens_df, DF, this_run);
+
+      output_data(psi_1d, dens, velc, dens_df, velc_df, this_run);
       output_DF(DF, this_run);
       this_run.output_indx++;
     }

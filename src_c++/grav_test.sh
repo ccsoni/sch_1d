@@ -18,4 +18,4 @@ function run_model() {
 #run_model harmonic_N128_d0.05_5pnt 128 0.05
 #run_model harmonic_N256_d0.05_5pnt 256 0.05
 #run_model harmonic_N256_d0.01_5pnt 256 0.01
-run_model grav_test_sigma 256 0.01
+run_model grav_test_df 256 0.01
